@@ -111,11 +111,13 @@ Each action accepts a key string or an array of aliases.
 
 Default contexts:
 
-- `global`: `dismiss` (`Ctrl+C`) and `settings` (`?`)
+- `global`: `dismiss` (`Ctrl+C`), `settings` (`?`), and `toggleVisibility` (`Alt+A`)
 - `main`: confirm/cancel/toggle, tab navigation, option navigation, and note shortcuts
 - `editor`: custom answer submit/close and empty-editor navigation
 - `noteEditor`: note save/close and empty-editor navigation
 - `settingsModal`: close, next/previous setting, and toggle
+
+Press `Alt+A` to collapse the ask panel to a bordered `Ask hidden · alt+a to expand` line and scroll the transcript underneath with the mouse; press it again to restore the panel with the same state.
 
 Fixed bindings:
 
@@ -134,7 +136,7 @@ You can edit the config file yourself, ask pi to edit it for you, or use `/ask-s
 
 ```json
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "answer": {
     "extractionModels": [
       { "provider": "openai-codex", "id": "gpt-5.4-mini" },
@@ -152,7 +154,11 @@ You can edit the config file yourself, ask pi to edit it for you, or use `/ask-s
     "showFooterHints": true
   },
   "keymaps": {
-    "global": { "dismiss": ["ctrl+c"], "settings": ["?"] },
+    "global": {
+      "dismiss": ["ctrl+c"],
+      "settings": ["?"],
+      "toggleVisibility": ["alt+a"]
+    },
     "main": {
       "confirm": ["enter"],
       "cancel": ["esc"],

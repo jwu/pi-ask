@@ -1,7 +1,7 @@
 import { normalizeLegacyFlatKeymaps } from "../../constants/keymaps.ts";
 import type { AskConfigMigration, VersionedAskConfigFile } from "./types.ts";
 
-export const CURRENT_ASK_CONFIG_SCHEMA_VERSION = 5;
+export const CURRENT_ASK_CONFIG_SCHEMA_VERSION = 6;
 
 const ASK_CONFIG_MIGRATIONS: AskConfigMigration[] = [
 	{
@@ -46,6 +46,15 @@ const ASK_CONFIG_MIGRATIONS: AskConfigMigration[] = [
 			schemaVersion: 5,
 		}),
 	},
+	{
+		from: 5,
+		to: 6,
+		migrate: (config) => ({
+			...config,
+			keymaps: addV6Keymaps(config.keymaps),
+			schemaVersion: 6,
+		}),
+	},
 ];
 
 function addV5Keymaps(keymaps: unknown): unknown {
@@ -63,6 +72,21 @@ function addV5Keymaps(keymaps: unknown): unknown {
 			...(main as Record<string, unknown>),
 			changeQuestionType: (main as Record<string, unknown>)
 				.changeQuestionType ?? ["t"],
+		},
+	};
+}
+
+function addV6Keymaps(keymaps: unknown): unknown {
+	const current = keymaps as Record<string, unknown> | undefined;
+	const global = current?.global as Record<string, unknown> | undefined;
+	if (!(current && global)) {
+		return keymaps;
+	}
+	return {
+		...current,
+		global: {
+			...global,
+			toggleVisibility: global.toggleVisibility ?? ["alt+a"],
 		},
 	};
 }

@@ -19,6 +19,7 @@ export type AskInputCommand =
 	| { kind: "cancel" }
 	| { kind: "changeQuestionType" }
 	| { kind: "dismiss" }
+	| { kind: "toggleVisibility" }
 	| { kind: "showSettings" }
 	| { kind: "numberShortcut"; digit: number }
 	| { kind: "editMoveTab"; delta: 1 | -1 }
@@ -37,6 +38,9 @@ export function getInputCommand(
 	const global = getGlobalBindings(config);
 	if (matchesBinding(data, global.dismiss)) {
 		return { kind: "dismiss" };
+	}
+	if (matchesBinding(data, global.toggleVisibility)) {
+		return { kind: "toggleVisibility" };
 	}
 	if (matchesBinding(data, global.settings) && editingText.length === 0) {
 		return { kind: "showSettings" };

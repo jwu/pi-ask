@@ -30,7 +30,7 @@ Unsupported future versions or invalid files are left unchanged and defaults are
 
 ```json
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "answer": {
     "extractionModels": [
       { "provider": "openai-codex", "id": "<model-id>" },
@@ -48,7 +48,11 @@ Unsupported future versions or invalid files are left unchanged and defaults are
     "showFooterHints": true
   },
   "keymaps": {
-    "global": { "dismiss": ["ctrl+c"], "settings": ["?"] },
+    "global": {
+      "dismiss": ["ctrl+c"],
+      "settings": ["?"],
+      "toggleVisibility": ["alt+a"]
+    },
     "main": {
       "confirm": ["enter"],
       "cancel": ["esc"],
@@ -158,6 +162,16 @@ pi auth check --provider openai-codex --model gpt-5.4-mini
 - default: `true`
 - effect: when disabled, the ask flow hides the footer keymap hints
 
+## Ask panel visibility
+
+Pressing the global `toggleVisibility` binding (default `alt+a`) collapses the ask flow to a bordered `Ask hidden · alt+a to expand` line and leaves the transcript above in place, so the mouse wheel can scroll back through earlier messages. Pressing it again restores the panel with the same state.
+
+- works from every question, editor, and review view
+- appearance: the `Ask hidden` label uses the theme accent color, the binding hint stays dim, and the block is framed by accent rule lines above and below
+- while collapsed, keyboard input other than the toggle binding is ignored, so a hidden flow cannot be cancelled by accident
+- the collapsed line is rendered by the ask flow itself rather than a Pi shortcut, so rebinding takes effect immediately from config without `/reload`
+- keymap validation: `toggleVisibility` is validated like any other global binding, so it must not collide with `main`, `editor`, or `noteEditor` bindings
+
 ## Notifications
 
 Notifications are best-effort external alerts emitted once per ask session, when the ask UI opens and is waiting for input.
@@ -215,7 +229,8 @@ Arrays are aliases: any listed key triggers the same action.
 "keymaps": {
   "global": {
     "dismiss": ["ctrl+c"],
-    "settings": ["?"]
+    "settings": ["?"],
+    "toggleVisibility": ["alt+a"]
   },
   "main": {
     "confirm": ["enter"],
@@ -257,6 +272,7 @@ Arrays are aliases: any listed key triggers the same action.
 ### Contexts
 
 - `global`: active in the main ask flow and editors; duplicates with those contexts are invalid
+- `global.toggleVisibility` collapses and restores the ask panel
 - `main`: question and review flow
 - `editor`: custom answer editor
 - `noteEditor`: question/option note editor
@@ -345,7 +361,8 @@ Invalid keymaps include:
   "keymaps": {
     "global": {
       "dismiss": ["ctrl+c"],
-      "settings": ["?"]
+      "settings": ["?"],
+      "toggleVisibility": ["alt+a"]
     },
     "main": {
       "confirm": ["ctrl+k"],
@@ -399,7 +416,7 @@ Invalid keymaps include:
 When editing this config for a user:
 
 - preserve unrelated fields
-- keep `schemaVersion` at `5`
+- keep `schemaVersion` at `6`
 - preserve `answer.extractionModels` as explicit provider/id pairs
 - keep `answer.extractionRetries` between `0` and `3`
 - do not assign fixed numeric shortcuts (`1` through `9`) to configurable actions

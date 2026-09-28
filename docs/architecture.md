@@ -46,6 +46,7 @@ The codebase is split so the implementation reads through file boundaries and na
 ### UI
 
 - `src/ui/controller.ts` — connects key input, editor lifecycle, live config subscription, dirty-dismiss confirmation, and pure state transitions
+- `src/ui/visibility.ts` — collapsed ask panel hint line rendering
 - `src/ui/input.ts` — raw input to commands using resolved context-aware config-backed keymaps
 - `src/ui/dismiss-guard.ts` — pure helpers for dirty-flow exit confirmation behavior
 - `src/ui/render.ts` and `src/ui/render-*.ts` — screen rendering, including config-backed footer/keymap hints

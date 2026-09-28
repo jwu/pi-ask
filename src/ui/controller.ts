@@ -56,6 +56,7 @@ import {
 	resolveReviewShortcutDoublePress,
 } from "./review-shortcuts.ts";
 import { showAskSettings } from "./show-settings.ts";
+import { renderCollapsedAskHint } from "./visibility.ts";
 
 type CustomCallback = Parameters<ExtensionContext["ui"]["custom"]>[0];
 type CustomCallbackArgs = CustomCallback extends (...args: infer T) => unknown
@@ -84,6 +85,7 @@ type AskFlowParams = AskParams &
 	};
 
 interface AskFlowController {
+	collapsed: boolean;
 	config: AskConfig;
 	configNotice?: string;
 	ctx: ExtensionContext;
@@ -141,6 +143,7 @@ function createAskFlowController(
 	params: AskFlowParams
 ) {
 	const controller: AskFlowController = {
+		collapsed: false,
 		config: params.config,
 		configNotice: params.configNotice,
 		ctx: params.ctx,
@@ -184,7 +187,10 @@ function createAskFlowController(
 		set focused(value: boolean) {
 			controller.editor.focused = value;
 		},
-		render: (width: number) => renderController(controller, width),
+		render: (width: number) =>
+			controller.collapsed
+				? renderCollapsedAskHint(controller, width)
+				: renderController(controller, width),
 		invalidate() {
 			controller.editor.invalidate();
 		},
@@ -221,6 +227,14 @@ function handleControllerInput(controller: AskFlowController, data: string) {
 		data,
 		isEditingView(controller.state) ? controller.editor.getText() : ""
 	);
+	if (command.kind === "toggleVisibility") {
+		controller.collapsed = !controller.collapsed;
+		refresh(controller);
+		return;
+	}
+	if (controller.collapsed) {
+		return;
+	}
 	if (isEditingView(controller.state)) {
 		handleEditingCommand(controller, command, data);
 		return;

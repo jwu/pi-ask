@@ -90,6 +90,7 @@ export const DEFAULT_ASK_KEYMAPS: AskConfigKeymaps = {
 	global: {
 		dismiss: ["ctrl+c"],
 		settings: ["?"],
+		toggleVisibility: ["alt+a"],
 	},
 	main: {
 		confirm: ["enter"],
@@ -131,6 +132,7 @@ const DESCRIPTIONS: Record<AskKeymapContext, Record<string, string>> = {
 	global: {
 		dismiss: "Dismiss the active ask surface",
 		settings: "Open ask settings",
+		toggleVisibility: "Hide or show the ask panel",
 	},
 	main: {
 		confirm: "Confirm selection, continue, or submit",
@@ -316,17 +318,20 @@ export function renderFooterKeymaps(
 		input: [
 			footerHint(editor.submit, "submit"),
 			footerHint(editor.close, "close"),
+			footerHint(global.toggleVisibility, "hide"),
 			footerHint(global.settings, "settings"),
 		],
 		note: [
 			footerHint(noteEditor.save, "save"),
 			footerHint(noteEditor.close, "close"),
+			footerHint(global.toggleVisibility, "hide"),
 			footerHint(global.settings, "settings"),
 		],
 		submit: [
 			footerHint(bindings.numberShortcut, "hotkeys"),
 			footerHint(main.confirm, "confirm"),
 			footerHint(main.cancel, "cancel"),
+			footerHint(global.toggleVisibility, "hide"),
 			footerHint(global.settings, "settings"),
 		],
 		multi: [
@@ -339,6 +344,7 @@ export function renderFooterKeymaps(
 			footerHint(main.confirm, "continue"),
 			footerHint(main.optionNote, "note", noteNavigationLabel),
 			footerHint(main.cancel, "dismiss"),
+			footerHint(global.toggleVisibility, "hide"),
 			footerHint(global.settings, "settings"),
 		],
 		default: [
@@ -350,6 +356,7 @@ export function renderFooterKeymaps(
 			footerHint(main.confirm, "confirm"),
 			footerHint(main.optionNote, "note", noteNavigationLabel),
 			footerHint(main.cancel, "dismiss"),
+			footerHint(global.toggleVisibility, "hide"),
 			footerHint(global.settings, "settings"),
 		],
 	};
@@ -606,6 +613,7 @@ function cloneKeymaps(keymaps: AskConfigKeymaps): AskConfigKeymaps {
 		global: {
 			dismiss: [...keymaps.global.dismiss],
 			settings: [...keymaps.global.settings],
+			toggleVisibility: [...keymaps.global.toggleVisibility],
 		},
 		main: {
 			confirm: [...keymaps.main.confirm],

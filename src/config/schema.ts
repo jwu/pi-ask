@@ -61,7 +61,7 @@ const AskConfigKeymapsV4Schema = Type.Object({
 	}),
 });
 
-const AskConfigKeymapsSchema = Type.Object({
+const AskConfigKeymapsV5Schema = Type.Object({
 	global: Type.Object({
 		dismiss: Type.Optional(AskKeyBindingSchema),
 		settings: Type.Optional(AskKeyBindingSchema),
@@ -122,7 +122,7 @@ export const AskConfigFileV5Schema = Type.Object({
 			showFooterHints: Type.Optional(Type.Boolean()),
 		})
 	),
-	keymaps: Type.Optional(AskConfigKeymapsSchema),
+	keymaps: Type.Optional(AskConfigKeymapsV5Schema),
 	notifications: Type.Optional(
 		Type.Object({
 			channels: Type.Optional(Type.Array(AskNotificationChannelSchema)),
@@ -130,6 +130,25 @@ export const AskConfigFileV5Schema = Type.Object({
 		})
 	),
 });
+
+const AskConfigKeymapsSchema = Type.Intersect([
+	AskConfigKeymapsV5Schema,
+	Type.Object({
+		global: Type.Object({
+			dismiss: Type.Optional(AskKeyBindingSchema),
+			settings: Type.Optional(AskKeyBindingSchema),
+			toggleVisibility: Type.Optional(AskKeyBindingSchema),
+		}),
+	}),
+]);
+
+export const AskConfigFileV6Schema = Type.Intersect([
+	Type.Omit(AskConfigFileV5Schema, ["schemaVersion"]),
+	Type.Object({
+		keymaps: Type.Optional(AskConfigKeymapsSchema),
+		schemaVersion: Type.Literal(6),
+	}),
+]);
 
 export const AskConfigFileV4Schema = Type.Object({
 	schemaVersion: Type.Literal(4),
@@ -201,6 +220,7 @@ export const AskConfigFileV2Schema = Type.Omit(AskConfigFileV3Schema, [
 	"schemaVersion",
 ]);
 
+export type AskConfigFileV6 = Static<typeof AskConfigFileV6Schema>;
 export type AskConfigFileV5 = Static<typeof AskConfigFileV5Schema>;
 export type AskConfigFileV4 = Static<typeof AskConfigFileV4Schema>;
 export type AskConfigFileV3 = Static<typeof AskConfigFileV3Schema>;
@@ -235,6 +255,7 @@ export interface AskConfigKeymaps {
 	global: {
 		dismiss: string[];
 		settings: string[];
+		toggleVisibility: string[];
 	};
 	main: {
 		cancel: string[];
@@ -284,4 +305,5 @@ export interface AskConfig {
 	};
 }
 
+export const validateAskConfigFileV6 = Compile(AskConfigFileV6Schema);
 export const validateAskConfigFileV5 = Compile(AskConfigFileV5Schema);

@@ -77,11 +77,11 @@ test("renderEditorBlock reapplies background after editor reset sequences", () =
 test("editing footers do not advertise tab navigation", () => {
 	assert.equal(
 		renderFooterText(DEFAULT_ASK_CONFIG, "input"),
-		" Enter submit · Esc close · ? settings"
+		" Enter submit · Esc close · Alt+A hide · ? settings"
 	);
 	assert.equal(
 		renderFooterText(DEFAULT_ASK_CONFIG, "note"),
-		" Enter save · Esc close · ? settings"
+		" Enter save · Esc close · Alt+A hide · ? settings"
 	);
 });
 
@@ -100,6 +100,6 @@ test("editing footers use configured key labels", () => {
 
 	assert.equal(
 		renderFooterText(config, "note"),
-		" Ctrl+K save · Q close · ? settings"
+		" Ctrl+K save · Q close · Alt+A hide · ? settings"
 	);
 });

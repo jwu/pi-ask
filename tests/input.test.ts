@@ -434,3 +434,24 @@ test("custom configured note shortcuts are used at runtime", () => {
 		kind: "openQuestionNote",
 	});
 });
+
+test("visibility shortcut is available in navigation and editing views", () => {
+	const altA = "\x1ba";
+	const navigation = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				options: [{ label: "A", value: "a" }],
+				prompt: "Question?",
+			},
+		],
+	});
+
+	assert.deepEqual(getInputCommand(navigation, DEFAULT_ASK_CONFIG, altA, ""), {
+		kind: "toggleVisibility",
+	});
+	assert.deepEqual(
+		getInputCommand(inputState(), DEFAULT_ASK_CONFIG, altA, "typed"),
+		{ kind: "toggleVisibility" }
+	);
+});

@@ -148,3 +148,23 @@ test("config migration framework rejects unversioned config files", () => {
 		INVALID_CONFIG_PATTERN
 	);
 });
+
+test("config migration adds the v6 visibility shortcut to v5 configs", () => {
+	const result = migrateAskConfig({
+		schemaVersion: 5,
+		behaviour: DEFAULT_ASK_CONFIG.behaviour,
+		keymaps: {
+			...DEFAULT_ASK_CONFIG.keymaps,
+			global: {
+				dismiss: DEFAULT_ASK_CONFIG.keymaps.global.dismiss,
+				settings: DEFAULT_ASK_CONFIG.keymaps.global.settings,
+			},
+		},
+		notifications: DEFAULT_ASK_CONFIG.notifications,
+	});
+
+	assert.equal(result.migrated, true);
+	assert.deepEqual(result.config.keymaps.global.toggleVisibility, ["alt+a"]);
+	assert.deepEqual(result.config.keymaps.global.dismiss, ["ctrl+c"]);
+	assert.deepEqual(result.config.keymaps.main, DEFAULT_ASK_CONFIG.keymaps.main);
+});
