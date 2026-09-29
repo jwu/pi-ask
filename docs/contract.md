@@ -232,6 +232,8 @@ This document defines the stable external behavior. It does not explain internal
 
 ## Keyboard behavior
 
+Keys are matched after normalizing a single full-width character committed by an active CJK input method to its ASCII equivalent (`？` -> `?`, `１` -> `1`, ideographic space -> `Space`); full-width text typed into an answer or note editor is delegated to the editor unchanged.
+
 Main flow:
 
 - `global.settings` opens ask settings; default: `?`

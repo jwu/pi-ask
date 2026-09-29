@@ -321,6 +321,13 @@ These are intentionally not configurable:
 - when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
 - `@` remains the file-reference affordance in editors
 
+### Input method (IME) characters
+
+While a CJK input method is active it commits full-width characters, for example `？` (U+FF1F) instead of `?` or `１` (U+FF11) instead of `1`. Bindings are matched against the ASCII equivalent of a single full-width character, so `global.settings` and `settingsModal.close` still trigger on `？`, and `1..9` still trigger on `１`.
+
+- the ideographic space (U+3000) matches `space`
+- only single characters are normalized; text delegated to an answer or note editor keeps the original full-width character, so full-width typing is unaffected
+
 ## Invalid keymaps behavior
 
 If configured keymaps are invalid:

@@ -230,6 +230,18 @@ test("settings list resets config to defaults after double press", async () => {
 	assert.deepEqual(saved, DEFAULT_ASK_CONFIG);
 });
 
+test("settings list closes with a full-width question mark from an IME", () => {
+	let closed = 0;
+	const list = createList({
+		onClose: () => {
+			closed += 1;
+		},
+	});
+
+	list.handleInput("？");
+	assert.equal(closed, 1);
+});
+
 test("settings list closes with configured keys and dispose idempotently", () => {
 	let closed = 0;
 	const list = createList({

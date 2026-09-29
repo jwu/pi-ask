@@ -191,6 +191,39 @@ test("question mark opens ask settings outside non-empty editors", () => {
 	});
 });
 
+test("full-width IME characters match their ASCII shortcuts", () => {
+	const navigation = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				prompt: "Question?",
+				options: [{ value: "a", label: "A" }],
+			},
+		],
+	});
+	const input = inputState();
+
+	// Full-width "？" (U+FF1F) committed by a CJK input method.
+	assert.deepEqual(getInputCommand(navigation, DEFAULT_ASK_CONFIG, "\uff1f"), {
+		kind: "showSettings",
+	});
+	assert.deepEqual(getInputCommand(input, DEFAULT_ASK_CONFIG, "\uff1f", ""), {
+		kind: "showSettings",
+	});
+	// Non-empty editors must still receive the untouched full-width character.
+	assert.deepEqual(getInputCommand(input, DEFAULT_ASK_CONFIG, "\uff1f", "x"), {
+		kind: "delegateToEditor",
+	});
+	// Full-width digit "１" (U+FF11) and ideographic space (U+3000).
+	assert.deepEqual(getInputCommand(navigation, DEFAULT_ASK_CONFIG, "\uff11"), {
+		kind: "numberShortcut",
+		digit: 1,
+	});
+	assert.deepEqual(getInputCommand(navigation, DEFAULT_ASK_CONFIG, "\u3000"), {
+		kind: "toggleMulti",
+	});
+});
+
 test("question type shortcut uses configured main keymap", () => {
 	const state = createInitialState({
 		questions: [

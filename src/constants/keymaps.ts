@@ -1,6 +1,11 @@
 import { matchesKey } from "@earendil-works/pi-tui";
 import type { AskConfig, AskConfigKeymaps } from "../config/schema.ts";
 
+const FULLWIDTH_ASCII_START = 0xff_01;
+const FULLWIDTH_ASCII_END = 0xff_5e;
+const FULLWIDTH_ASCII_OFFSET = 0xfe_e0;
+const IDEOGRAPHIC_SPACE = 0x30_00;
+
 const DIGIT_SHORTCUT_PATTERN = /^[1-9]$/;
 const LETTER_PATTERN = /^[a-z]$/;
 const DIGIT_PATTERN = /^[0-9]$/;
@@ -209,17 +214,42 @@ export function formatBindingLabel(keys: readonly string[]): string {
 	return keys.map(formatKeybindingLabel).join(" / ");
 }
 
+/**
+ * Map a single full-width character produced by a CJK input method to its
+ * ASCII equivalent so shortcuts still match while the IME is active.
+ *
+ * Input methods commit full-width punctuation like `？` (U+FF1F) or `１`
+ * (U+FF11) instead of `?` / `1`, and those never matched the configured
+ * bindings. Only single characters are normalized so multi-byte terminal
+ * sequences (Kitty CSI-u, arrow keys, ...) pass through untouched.
+ */
+export function normalizeImeKey(data: string): string {
+	if (data.length !== 1) {
+		return data;
+	}
+	const code = data.charCodeAt(0);
+	if (code === IDEOGRAPHIC_SPACE) {
+		return " ";
+	}
+	if (code >= FULLWIDTH_ASCII_START && code <= FULLWIDTH_ASCII_END) {
+		return String.fromCharCode(code - FULLWIDTH_ASCII_OFFSET);
+	}
+	return data;
+}
+
 export function matchesBinding(data: string, binding: AskKeyBinding): boolean {
+	const normalized = normalizeImeKey(data);
 	return binding.keys.some((key) => {
 		if (key.length === 1) {
-			return data === key;
+			return normalized === key;
 		}
-		return matchesKey(data, key as KeyId);
+		return matchesKey(normalized, key as KeyId);
 	});
 }
 
 export function matchesDigitShortcut(data: string): number | null {
-	return DIGIT_SHORTCUT_PATTERN.test(data) ? Number(data) : null;
+	const normalized = normalizeImeKey(data);
+	return DIGIT_SHORTCUT_PATTERN.test(normalized) ? Number(normalized) : null;
 }
 
 export function getAskKeyBindings(
