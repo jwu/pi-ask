@@ -1,3 +1,15 @@
+# [0.2.0](https://github.com/jwu/pi-ask/compare/fork-v0.1.0...fork-v0.2.0) (2026-09-29)
+
+
+### Bug Fixes
+
+* match shortcuts when a CJK input method commits full-width keys ([7331b9b](https://github.com/jwu/pi-ask/commit/7331b9ba95797405b3fd0704f63b4516a7c73ce8))
+
+
+### Features
+
+* publish the fork under its own fork-v release line ([a41ebb9](https://github.com/jwu/pi-ask/commit/a41ebb9206d500e275f7773c9e26edec81c0c8da))
+
 # [1.3.0](https://github.com/jwu/pi-ask/compare/v1.2.0...v1.3.0) (2026-09-29)
 
 
