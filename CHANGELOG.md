@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/jwu/pi-ask/compare/v1.2.0...v1.3.0) (2026-09-29)
+
+
+### Bug Fixes
+
+* match shortcuts when a CJK input method commits full-width keys ([7331b9b](https://github.com/jwu/pi-ask/commit/7331b9ba95797405b3fd0704f63b4516a7c73ce8))
+
+
+### Features
+
+* collapse the ask panel with a visibility shortcut ([89699ba](https://github.com/jwu/pi-ask/commit/89699ba16f810eaca759cc697c0572a9ad481007))
+
 # [1.2.0](https://github.com/eko24ive/pi-ask/compare/v1.1.0...v1.2.0) (2026-08-16)
 
 
