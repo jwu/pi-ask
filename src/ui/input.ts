@@ -39,7 +39,12 @@ export function getInputCommand(
 	if (matchesBinding(data, global.dismiss)) {
 		return { kind: "dismiss" };
 	}
-	if (matchesBinding(data, global.toggleVisibility)) {
+	// A non-empty editor owns printable keys, so a single-character visibility
+	// binding (for example `?`) is typed instead of collapsing the panel.
+	// Modified and multi-byte bindings such as the default `alt+a` still toggle
+	// the panel while an answer is being typed.
+	const typesIntoEditor = editingText.length > 0 && isPrintableKey(data);
+	if (!typesIntoEditor && matchesBinding(data, global.toggleVisibility)) {
 		return { kind: "toggleVisibility" };
 	}
 	if (matchesBinding(data, global.settings) && editingText.length === 0) {
@@ -54,6 +59,19 @@ export function getInputCommand(
 	}
 
 	return getNavigationInputCommand(config, data);
+}
+
+/**
+ * True when the raw key is a single printable character that an editor would
+ * insert verbatim. Escape sequences, control keys, and modified keys (Kitty
+ * CSI-u, `alt+a`, function keys, ...) stay available as shortcuts.
+ */
+function isPrintableKey(data: string): boolean {
+	if (data.length !== 1) {
+		return false;
+	}
+	const code = data.charCodeAt(0);
+	return code >= 0x20 && code !== 0x7f;
 }
 
 function getAnswerEditorInputCommand(

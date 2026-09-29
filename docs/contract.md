@@ -253,6 +253,7 @@ Editing flow:
 - `editor.close` / `noteEditor.close` save draft and close the editor; default: `Esc`
 - `global.dismiss` dismisses the entire flow immediately without saving the current editor draft when no dirty-dismiss confirmation is pending
 - `global.settings` opens ask settings when the editor is empty; otherwise the key is delegated to the editor as text/input
+- `global.toggleVisibility` collapses and restores the ask panel; modified and multi-byte bindings still toggle while the editor has text, while printable single-character bindings are delegated to a non-empty editor as text
 - when editor has text, arrow keys and `Tab` stay in the editor so the cursor can move while typing
 - when editor is empty, editor-context `*WhenEmpty` navigation actions move options or tabs without requiring the editor close binding first
 - `@` remains a fixed file-reference affordance in editors
@@ -272,7 +273,7 @@ Dirty dismiss:
 
 The rich ask flow uses `ctx.ui.custom()` and opens only in TUI mode. In print, JSON, RPC, or any other non-TUI mode, the tool returns a `Needs user input: ask_user requires interactive TUI mode.` message in `content` and a cancelled result in `details` instead of opening custom UI.
 
-The ask flow can be collapsed to a bordered `Ask hidden · alt+a to expand` line with the global `toggleVisibility` binding (`alt+a` by default). The collapsed flow keeps its state, keeps rendering in the editor area so the transcript stays scrollable with the mouse, and ignores input other than the toggle binding until it is restored.
+The ask flow can be collapsed to a bordered `Ask hidden · alt+a to expand` line with the global `toggleVisibility` binding (`alt+a` by default). The collapsed flow keeps its state, keeps rendering in the editor area so the transcript stays scrollable with the mouse, and ignores input other than the toggle binding until it is restored. While collapsed the editor is inert, so its text never suppresses the toggle binding that restores the panel.
 
 The public tool schema requires question `id` and `prompt` plus option `value` and `label`, and it restricts question `type` to `single`, `multi`, or `preview`, so malformed structural fields fail before execution. The tool still validates trimmed text, uniqueness, option counts, and preview requirements during execution and returns structured issues for those failures. Result rendering falls back to Pi's raw tool-error text when schema validation prevents execution.
 

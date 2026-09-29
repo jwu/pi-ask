@@ -49,6 +49,97 @@ test("collapsed hint truncates to the available width", () => {
 	}
 });
 
+test("collapsed flow restores with a printable binding while the editor holds text", async () => {
+	getAskConfigStore().setConfig({
+		...DEFAULT_ASK_CONFIG,
+		behaviour: {
+			...DEFAULT_ASK_CONFIG.behaviour,
+			confirmDismissWhenDirty: false,
+		},
+		keymaps: {
+			...DEFAULT_ASK_CONFIG.keymaps,
+			global: {
+				...DEFAULT_ASK_CONFIG.keymaps.global,
+				settings: ["h"],
+				toggleVisibility: ["alt+a", "?"],
+			},
+		},
+		notifications: {
+			...DEFAULT_ASK_CONFIG.notifications,
+			enabled: false,
+		},
+	});
+
+	let component:
+		| {
+				dispose?(): void;
+				handleInput(data: string): void;
+				render(width: number): string[];
+		  }
+		| undefined;
+
+	const resultPromise = runAskFlow(
+		{
+			cwd: process.cwd(),
+			mode: "tui",
+			ui: {
+				custom(callback: (...args: unknown[]) => unknown) {
+					return new Promise((resolve) => {
+						const tui = {
+							requestRender() {
+								// Rendering is not needed for this controller test.
+							},
+							terminal: { columns: 120, rows: 40 },
+						};
+						component = callback(
+							tui,
+							plainTheme(),
+							{},
+							resolve
+						) as typeof component;
+					});
+				},
+				notify() {
+					// Notifications are disabled for this test.
+				},
+			},
+		} as never,
+		{
+			questions: [
+				{
+					id: "q1",
+					options: [{ label: "A", value: "a" }],
+					prompt: "Question?",
+				},
+			],
+		}
+	);
+
+	await new Promise((resolve) => setImmediate(resolve));
+
+	// Open the free-form editor for the custom row and type into it.
+	component?.handleInput("2");
+	component?.handleInput("x");
+
+	// The printable toggle binding is typed instead of collapsing the panel.
+	component?.handleInput("?");
+	assert.ok((component?.render(80) ?? []).length > 1);
+
+	// A modified binding still collapses while the editor holds text.
+	component?.handleInput(ALT_A);
+	assert.equal((component?.render(80) ?? []).length, 3);
+
+	// The collapsed flow ignores editor text, so the printable binding restores it.
+	component?.handleInput("?");
+	assert.ok((component?.render(80) ?? []).length > 1);
+
+	component?.handleInput("\u0003");
+	const result = await resultPromise;
+	assert.equal(result.cancelled, true);
+
+	getAskConfigStore().setConfig(DEFAULT_ASK_CONFIG);
+});
+
 test("collapsed hint renders the label in accent and the binding in dim", () => {
 	const calls: [string, string][] = [];
 	const lines = renderCollapsedAskHint(
@@ -100,6 +191,7 @@ test("ask flow collapses to one hint line and restores with the toggle binding",
 							requestRender() {
 								// Rendering is not needed for this controller test.
 							},
+							terminal: { columns: 120, rows: 40 },
 						};
 						component = callback(
 							tui,

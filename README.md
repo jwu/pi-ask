@@ -5,7 +5,7 @@
 > Personal fork of [@eko24ive/pi-ask](https://github.com/eko24ive/pi-ask). Releases here follow an independent `fork-v*` version line.
 
 [![npm downloads](https://badgen.net/npm/dm/@johnnywu/pi-ask)](https://www.npmjs.com/package/@johnnywu/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=6e0fb4e)](https://github.com/jwu/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=7a19e54)](https://github.com/jwu/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/jwu/pi-ask)](https://github.com/jwu/pi-ask/stargazers)
 
 > [!IMPORTANT]
@@ -119,7 +119,7 @@ Default contexts:
 - `noteEditor`: note save/close and empty-editor navigation
 - `settingsModal`: close, next/previous setting, and toggle
 
-Press `Alt+A` to collapse the ask panel to a bordered `Ask hidden · alt+a to expand` line and scroll the transcript underneath with the mouse; press it again to restore the panel with the same state.
+Press `Alt+A` to collapse the ask panel to a bordered `Ask hidden · alt+a to expand` line and scroll the transcript underneath with the mouse; press it again to restore the panel with the same state. If you rebind `toggleVisibility` to a printable key such as `?`, that key is typed into a non-empty answer or note editor instead of collapsing the panel; modified bindings like `Alt+A` keep toggling while you type.
 
 Fixed bindings:
 

@@ -167,6 +167,9 @@ pi auth check --provider openai-codex --model gpt-5.4-mini
 Pressing the global `toggleVisibility` binding (default `alt+a`) collapses the ask flow to a bordered `Ask hidden · alt+a to expand` line and leaves the transcript above in place, so the mouse wheel can scroll back through earlier messages. Pressing it again restores the panel with the same state.
 
 - works from every question, editor, and review view
+- printable single-character bindings are typed into a non-empty answer or note editor instead of toggling the panel, so rebinding `toggleVisibility` to a printable key such as `?` does not swallow that character while typing
+- modified and multi-byte bindings (for example the default `alt+a`) still toggle the panel while an editor holds text
+- while collapsed, editor text is ignored so the toggle binding always restores the panel
 - appearance: the `Ask hidden` label uses the theme accent color, the binding hint stays dim, and the block is framed by accent rule lines above and below
 - while collapsed, keyboard input other than the toggle binding is ignored, so a hidden flow cannot be cancelled by accident
 - the collapsed line is rendered by the ask flow itself rather than a Pi shortcut, so rebinding takes effect immediately from config without `/reload`

@@ -221,11 +221,17 @@ function renderController(
 
 function handleControllerInput(controller: AskFlowController, data: string) {
 	controller.editor.disableSubmit = !isNativeEditorSubmitEnabled(controller);
+	// While collapsed the editor is inert, so its text must not suppress the
+	// visibility binding that restores the panel.
+	const editingText =
+		controller.collapsed || !isEditingView(controller.state)
+			? ""
+			: controller.editor.getText();
 	const command = getInputCommand(
 		controller.state,
 		controller.config,
 		data,
-		isEditingView(controller.state) ? controller.editor.getText() : ""
+		editingText
 	);
 	if (command.kind === "toggleVisibility") {
 		controller.collapsed = !controller.collapsed;

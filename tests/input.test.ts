@@ -488,3 +488,46 @@ test("visibility shortcut is available in navigation and editing views", () => {
 		{ kind: "toggleVisibility" }
 	);
 });
+
+test("printable visibility bindings yield to non-empty editors", () => {
+	const altA = "\x1ba";
+	const config = {
+		...DEFAULT_ASK_CONFIG,
+		keymaps: {
+			...DEFAULT_ASK_CONFIG.keymaps,
+			global: {
+				...DEFAULT_ASK_CONFIG.keymaps.global,
+				settings: ["h"],
+				toggleVisibility: ["alt+a", "?"],
+			},
+		},
+	};
+	const navigation = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				options: [{ label: "A", value: "a" }],
+				prompt: "Question?",
+			},
+		],
+	});
+
+	// A non-empty editor keeps printable keys as text input.
+	assert.deepEqual(getInputCommand(inputState(), config, "?", "typed"), {
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(inputState(), config, "\uff1f", "typed"), {
+		kind: "delegateToEditor",
+	});
+	// An empty editor and the option list still toggle the panel.
+	assert.deepEqual(getInputCommand(inputState(), config, "?", ""), {
+		kind: "toggleVisibility",
+	});
+	assert.deepEqual(getInputCommand(navigation, config, "?", ""), {
+		kind: "toggleVisibility",
+	});
+	// Modified bindings keep toggling while the editor holds text.
+	assert.deepEqual(getInputCommand(inputState(), config, altA, "typed"), {
+		kind: "toggleVisibility",
+	});
+});
