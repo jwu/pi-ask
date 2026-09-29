@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/jwu/pi-ask/compare/fork-v0.2.0...fork-v0.2.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* keep printable visibility bindings from swallowing editor input ([4540ee3](https://github.com/jwu/pi-ask/commit/4540ee35f3c16c78c0a9b1fd533148920f44e978))
+
 # [0.2.0](https://github.com/jwu/pi-ask/compare/fork-v0.1.0...fork-v0.2.0) (2026-09-29)
 
 
