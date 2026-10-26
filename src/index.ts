@@ -5,6 +5,7 @@ import { registerAnswerCommands } from "./answer-commands.ts";
 import { registerAskSettingsCommand } from "./ask-settings-command.ts";
 import { registerAskTool } from "./ask-tool.ts";
 import { resetAskConfigStore } from "./config/store.ts";
+import { bindHerdrEvents } from "./herdr-state.ts";
 import { createRemoteAskRuntime } from "./remote-ask.ts";
 import { registerPendingAskResume } from "./resume-pending-ask.ts";
 
@@ -18,11 +19,13 @@ const PI_ASK_CONFIG_PROMPT = `When the user asks to configure, customize, debug,
 
 export default function askExtension(pi: ExtensionAPI) {
 	resetAskConfigStore();
+	bindHerdrEvents(pi.events);
 	pi.on("before_agent_start", async (event) => ({
 		systemPrompt: `${event.systemPrompt}\n\n${PI_ASK_CONFIG_PROMPT}`,
 	}));
 	const remoteAsk = createRemoteAskRuntime(pi.events);
 	pi.on("session_shutdown", () => {
+		bindHerdrEvents(undefined);
 		remoteAsk.disposeAll();
 	});
 	registerAskTool(pi, remoteAsk);

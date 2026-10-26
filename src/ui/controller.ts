@@ -2,6 +2,7 @@ import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme } from "@earendil-works/pi-tui";
 import type { AskConfig } from "../config/schema.ts";
 import { getAskConfigStore } from "../config/store.ts";
+import { reportAsking } from "../herdr-state.ts";
 import {
 	createQuestionWaitingNotification,
 	notifyQuestionWaiting,
@@ -121,16 +122,21 @@ export async function runAskFlow(
 			cancelled: true,
 		};
 	}
-	return ctx.ui.custom<AskResult>((...args) =>
-		createAskFlowController(args, {
-			...params,
-			config,
-			configNotice: notice?.text,
-			cwd: ctx.cwd,
-			ctx,
-			flowOptions,
-		})
-	);
+	reportAsking(true);
+	try {
+		return await ctx.ui.custom<AskResult>((...args) =>
+			createAskFlowController(args, {
+				...params,
+				config,
+				configNotice: notice?.text,
+				cwd: ctx.cwd,
+				ctx,
+				flowOptions,
+			})
+		);
+	} finally {
+		reportAsking(false);
+	}
 }
 
 function createAskFlowController(
