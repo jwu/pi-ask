@@ -2,7 +2,7 @@
 
 # @johnnywu/pi-ask
 
-> Personal fork of [@eko24ive/pi-ask](https://github.com/eko24ive/pi-ask). Releases here follow an independent `fork-v*` version line.
+> Personal fork of [@eko24ive/pi-ask](https://github.com/eko24ive/pi-ask). Releases here follow an independent `fork-v*` version line; the publish flow is documented in [`docs/releasing.md`](docs/releasing.md).
 
 [![npm downloads](https://badgen.net/npm/dm/@johnnywu/pi-ask)](https://www.npmjs.com/package/@johnnywu/pi-ask)
 [![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=7a19e54)](https://github.com/jwu/pi-ask/commits/main)
@@ -295,11 +295,13 @@ Recommended flow:
 pnpm commit
 ```
 
+Releases are cut locally with `semantic-release` on the `fork-v*` line; see [`docs/releasing.md`](docs/releasing.md) for the full flow.
+
 ## Project layout
 
 - `src/` — TypeScript extension implementation
 - `tests/` — behavior-focused tests
-- `docs/` — small docs set for contract and architecture
+- `docs/` — small docs set for contract, architecture, and the fork release flow
 - `docs/media/` — repository-only README media assets
 
 ## Documentation

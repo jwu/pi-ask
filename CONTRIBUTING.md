@@ -58,6 +58,10 @@ Examples:
 
 Conventional commit types matter because releases are generated automatically from commit history.
 
+## Releasing
+
+Maintainers publish this fork from a local checkout, on the `fork-v*` line, using `semantic-release`. See `docs/releasing.md` for the prerequisites, the exact command, and the verification steps.
+
 ## Scope of changes
 
 Please keep changes focused:
