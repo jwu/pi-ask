@@ -51,10 +51,10 @@ gh auth status             # must show a token with repo scope
 4. Cut the release from `main`:
 
    ```bash
-   GITHUB_TOKEN="$(gh auth token)" pnpm exec semantic-release
+   GITHUB_TOKEN="$(gh auth token)" pnpm exec semantic-release --no-ci
    ```
 
-   `GITHUB_TOKEN` is required for tagging, pushing the release commit, and creating the GitHub release; npm authentication comes from the local `~/.npmrc` token.
+   `--no-ci` is required: `semantic-release` only publishes for real when it believes it runs in CI, and a local run without that flag stops after a dry-run of the same steps. `GITHUB_TOKEN` is required for tagging, pushing the release commit, and creating the GitHub release; npm authentication comes from the local `~/.npmrc` token.
 
 5. Verify the release:
 
