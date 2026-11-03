@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/jwu/pi-ask/compare/fork-v0.3.0...fork-v0.3.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **changelog:** guard the package changelog against newer headings ([71e8063](https://github.com/jwu/pi-ask/commit/71e8063d3a012a807549a2c670ff0938d858eda7))
+
 # [0.3.0](https://github.com/jwu/pi-ask/compare/fork-v0.2.1...fork-v0.3.0) (2026-10-26)
 
 
