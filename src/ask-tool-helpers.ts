@@ -56,7 +56,9 @@ export function invalidPayloadResponse(
 	issues: AskValidationIssue[]
 ) {
 	return {
-		content: [{ type: "text" as const, text: formatValidationError(issues) }],
+		content: [
+			{ type: "text" as const, text: formatValidationError(params, issues) },
+		],
 		details: errorResultDetails(params, issues),
 	};
 }
@@ -143,11 +145,68 @@ function errorResultDetails(
 	};
 }
 
-function formatValidationError(issues: AskValidationIssue[]): string {
-	return [
+// Args often arrive empty when a model's tool-call arguments degrade; echoing what was
+// actually received lets it self-correct instead of retrying the same payload.
+const RECEIVED_PAYLOAD_MAX_CHARS = 800;
+
+function formatValidationError(
+	params: AskParams,
+	issues: AskValidationIssue[]
+) {
+	const lines = [
 		"Invalid ask_user payload:",
 		...issues.map((issue) => `- ${issue.path}: ${issue.message}`),
-	].join("\n");
+	];
+	for (const extra of [
+		formatReceivedPayload(params),
+		malformedPayloadHint(params),
+	]) {
+		if (extra) {
+			lines.push("", extra);
+		}
+	}
+	return lines.join("\n");
+}
+
+function formatReceivedPayload(params: AskParams): string | undefined {
+	let text: string;
+	try {
+		text = JSON.stringify(params, null, 2);
+	} catch {
+		return;
+	}
+	if (!text) {
+		return;
+	}
+	if (text.length > RECEIVED_PAYLOAD_MAX_CHARS) {
+		text = `${text.slice(0, RECEIVED_PAYLOAD_MAX_CHARS)}\n… truncated`;
+	}
+	return `Received payload:\n${text}`;
+}
+
+function malformedPayloadHint(params: AskParams): string | undefined {
+	const questions = Array.isArray(params?.questions)
+		? params.questions
+		: undefined;
+	if (!questions) {
+		return "The questions array is missing: send one question with id, prompt, and at least one option.";
+	}
+	if (questions.length === 0) {
+		return "The questions array was empty: send at least one question with id, prompt, and at least one option carrying value and label.";
+	}
+	if (questions.some(isEmptyRecord)) {
+		return "Some question objects arrived empty. Resend one complete question instead of retrying with an emptied payload; if it keeps arriving empty, ask the user in plain text.";
+	}
+	return;
+}
+
+function isEmptyRecord(value: unknown): boolean {
+	return (
+		!!value &&
+		typeof value === "object" &&
+		!Array.isArray(value) &&
+		Object.keys(value).length === 0
+	);
 }
 
 function formatNonInteractiveMessage(

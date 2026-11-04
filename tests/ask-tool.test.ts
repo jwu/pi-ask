@@ -17,6 +17,13 @@ const PREVIEW_RULE_RE =
 const MISSING_OPTION_VALUE_RE =
 	/questions\[0\]\.options\[0\]\.value: Question 1, option 1: value is required/;
 const EMPTY_QUESTIONS_RE = /questions: At least one question is required/;
+const DEGRADED_QUESTION_ID_RE =
+	/questions\[0\]\.id: Question 1: id is required/;
+const DEGRADED_QUESTION_OPTIONS_RE =
+	/questions\[2\]\.options: Question 3: at least one option/;
+const RECEIVED_PAYLOAD_RE = /Received payload:/;
+const DEGRADED_PAYLOAD_HINT_RE = /Some question objects arrived empty/;
+const EMPTY_QUESTIONS_HINT_RE = /The questions array was empty/;
 const INVALID_TYPE_RE =
 	/questions\[0\]\.type: Question 1: invalid type "grid"; expected "single", "multi", or "preview"/;
 const HAS_UI = "hasUI";
@@ -437,15 +444,18 @@ test("ask tool prepares missing and blank option labels before schema validation
 	assert.equal(result.details.error, undefined);
 });
 
-test("public schema requires semantic identifiers and labels", () => {
+test("public schema defers question fields to runtime validation", () => {
 	const { tool } = registerMockTool();
 	assert.deepEqual(tool.parameters.required, ["questions"]);
 	const questionSchema = tool.parameters.properties.questions.items;
-	assert.deepEqual(questionSchema.required, ["id", "prompt", "options"]);
+	// Field presence is checked at runtime so a degraded payload reaches the tool
+	// and gets an issue carrying the received args; see docs/contract.md.
+	assert.equal(questionSchema.required, undefined);
 	assert.deepEqual(questionSchema.properties.options.items.required, [
 		"value",
 		"label",
 	]);
+	assert.equal(Value.Check(AskParamsSchema, { questions: [{}, {}, {}] }), true);
 
 	const missingLabel = {
 		questions: [
@@ -457,6 +467,40 @@ test("public schema requires semantic identifiers and labels", () => {
 		],
 	};
 	assert.equal(Value.Check(AskParamsSchema, missingLabel), false);
+});
+
+test("degraded payload reaches the tool and echoes what arrived", async () => {
+	const { tool } = registerMockTool();
+	const result = await tool.execute(
+		"call-degraded",
+		{ title: "M1 重构：第一轮根决策", questions: [{}, {}, {}] },
+		undefined,
+		noop,
+		makeCtx(false)
+	);
+
+	assert.equal(result.details.error?.kind, "invalid_input");
+	const text = result.content[0].text as string;
+	assert.match(text, DEGRADED_QUESTION_ID_RE);
+	assert.match(text, DEGRADED_QUESTION_OPTIONS_RE);
+	assert.match(text, RECEIVED_PAYLOAD_RE);
+	assert.match(text, DEGRADED_PAYLOAD_HINT_RE);
+});
+
+test("empty questions array still reports one actionable issue", async () => {
+	const { tool } = registerMockTool();
+	const result = await tool.execute(
+		"call-empty",
+		{ title: "M1 重构", questions: [] },
+		undefined,
+		noop,
+		makeCtx(false)
+	);
+
+	assert.equal(result.details.error?.kind, "invalid_input");
+	const text = result.content[0].text as string;
+	assert.match(text, EMPTY_QUESTIONS_RE);
+	assert.match(text, EMPTY_QUESTIONS_HINT_RE);
 });
 
 test("ask tool transcript renderers summarize call and cancelled result", () => {

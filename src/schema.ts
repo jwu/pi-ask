@@ -28,20 +28,26 @@ export const AskOptionSchema = Type.Object({
 	),
 });
 
+// id/prompt/options stay optional at the schema layer so a malformed payload reaches
+// the tool and gets a structured issue with the received args; see docs/contract.md.
 export const AskQuestionSchema = Type.Object({
-	id: Type.String({
-		description:
-			"Required stable question identifier used as the key in returned answers",
-	}),
+	id: Type.Optional(
+		Type.String({
+			description:
+				"Required in a complete payload: stable question identifier used as the key in returned answers",
+		})
+	),
 	label: Type.Optional(
 		Type.String({
 			description: "Short tab label, e.g. Goal, Audience, Tone, Scope",
 		})
 	),
-	prompt: Type.String({
-		description:
-			"Required direct question shown to the user; ask about one decision at a time",
-	}),
+	prompt: Type.Optional(
+		Type.String({
+			description:
+				"Required in a complete payload: direct question shown to the user; ask about one decision at a time",
+		})
+	),
 	type: Type.Optional(
 		StringEnum(["single", "multi", "preview"] as const, {
 			description:
@@ -54,10 +60,12 @@ export const AskQuestionSchema = Type.Object({
 				"Advisory only; marks the question as important but never blocks submission",
 		})
 	),
-	options: Type.Array(AskOptionSchema, {
-		description:
-			"Answer options; provide clear, distinct choices and do not add filler options",
-	}),
+	options: Type.Optional(
+		Type.Array(AskOptionSchema, {
+			description:
+				"Required in a complete payload: at least one { value, label } option; provide clear, distinct choices and do not add filler options",
+		})
+	),
 });
 
 export const AskParamsSchema = Type.Object({

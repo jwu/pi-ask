@@ -34,7 +34,19 @@ export function collectValidationIssues(
 	options: ValidationOptions = {}
 ): AskValidationIssue[] {
 	const collector = createIssueCollector();
-	validateQuestions(params.questions, collector, options);
+	const questions = isRecord(params) ? params.questions : undefined;
+	if (!Array.isArray(questions)) {
+		collector.add(
+			"questions",
+			"questions must be an array of question objects"
+		);
+		return collector.issues;
+	}
+	validateQuestions(
+		questions as unknown as AskParams["questions"],
+		collector,
+		options
+	);
 	return collector.issues;
 }
 
@@ -144,7 +156,20 @@ function validateQuestion(
 ) {
 	const questionNumber = questionIndex + 1;
 	const questionPath = `questions[${questionIndex}]`;
-	const questionId = question.id?.trim();
+	if (!isRecord(question)) {
+		collector.add(
+			questionPath,
+			`Question ${questionNumber}: expected an object with id, prompt, and options`
+		);
+		return;
+	}
+	const questionOptions = Array.isArray(question.options)
+		? question.options
+		: [];
+	const questionId =
+		typeof question.id === "string" ? question.id.trim() : undefined;
+	const questionPrompt =
+		typeof question.prompt === "string" ? question.prompt.trim() : undefined;
 	const questionType = normalizeQuestionType(question.type);
 
 	validateQuestionType(
@@ -167,20 +192,20 @@ function validateQuestion(
 		`Question ${questionNumber}: duplicate question id "${questionId}"`
 	);
 	assertRequired(
-		question.prompt?.trim(),
+		questionPrompt,
 		collector,
 		`${questionPath}.prompt`,
 		`Question ${questionNumber}: prompt is required`
 	);
 	assertHasItems(
-		question.options,
+		questionOptions,
 		collector,
 		`${questionPath}.options`,
 		`Question ${questionNumber}: at least one option is required`
 	);
 
 	validateFreeformOptions(
-		question.options,
+		questionOptions,
 		questionNumber,
 		collector,
 		`${questionPath}.options`,
@@ -188,9 +213,9 @@ function validateQuestion(
 	);
 
 	const optionValues = new Set<string>();
-	for (const [optionIndex, option] of question.options.entries()) {
+	for (const [optionIndex, option] of questionOptions.entries()) {
 		validateOption(
-			option,
+			option as AskOption,
 			optionIndex,
 			optionValues,
 			questionNumber,
@@ -202,13 +227,15 @@ function validateQuestion(
 }
 
 function validateFreeformOptions(
-	options: AskOption[],
+	options: unknown[],
 	questionNumber: number,
 	collector: IssueCollector,
 	path: string,
 	validationOptions: ValidationOptions
 ) {
-	const freeformCount = options.filter((option) => option.freeform).length;
+	const freeformCount = options.filter(
+		(option) => isRecord(option) && option.freeform === true
+	).length;
 	if (freeformCount === 0) {
 		return;
 	}
@@ -238,8 +265,19 @@ function validateOption(
 ) {
 	const optionNumber = optionIndex + 1;
 	const prefix = `Question ${questionNumber}, option ${optionNumber}`;
-	const optionValue = option.value?.trim();
-	const optionPreview = option.preview?.trim();
+	if (!isRecord(option)) {
+		collector.add(
+			optionPath,
+			`${prefix}: expected an object with value and label`
+		);
+		return;
+	}
+	const optionValue =
+		typeof option.value === "string" ? option.value.trim() : undefined;
+	const optionLabel =
+		typeof option.label === "string" ? option.label.trim() : undefined;
+	const optionPreview =
+		typeof option.preview === "string" ? option.preview.trim() : undefined;
 
 	assertRequired(
 		optionValue,
@@ -255,7 +293,7 @@ function validateOption(
 		`${prefix}: duplicate option value "${optionValue}"`
 	);
 	assertRequired(
-		option.label?.trim(),
+		optionLabel,
 		collector,
 		`${optionPath}.label`,
 		`${prefix}: label is required`

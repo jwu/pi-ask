@@ -106,9 +106,10 @@ function resolvePendingAskParams(
 	const argumentsFallback = toolCall.arguments;
 	if (
 		Value.Check(AskParamsSchema, argumentsFallback) &&
-		validateParams(argumentsFallback).ok
+		validateParams(argumentsFallback as AskParams).ok
 	) {
-		return argumentsFallback;
+		// Field presence is checked at runtime now; passing validation means it is complete.
+		return argumentsFallback as AskParams;
 	}
 	return;
 }

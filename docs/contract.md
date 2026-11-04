@@ -28,6 +28,7 @@ This document defines the stable external behavior. It does not explain internal
 
 ## Input rules
 
+- `id`, `prompt`, and `options` are required in a complete question but optional in the public schema; presence is checked at runtime so a degraded payload still reaches the tool
 - at least one question is required
 - every question must have non-empty trimmed `id` and `prompt`
 - every question must have at least one option
@@ -169,7 +170,9 @@ This document defines the stable external behavior. It does not explain internal
 
 - `cancelled: true` means the user dismissed the flow, UI was unavailable, or the payload was invalid before UI opened
 - semantically invalid payloads that reach tool execution return `error.kind === "invalid_input"` with structured `issues` and a transcript-friendly `Invalid ask_user payload:` message; their rendered status is `Invalid tool payload`
-- payloads missing schema-required fields fail Pi's schema validation before tool execution and use Pi's standard tool-error result without structured `details`
+- payloads without a `questions` array fail Pi's schema validation before tool execution and use Pi's standard tool-error result without structured `details`
+- question fields are validated at runtime: an empty question object, missing `options`, or an empty `questions` array returns `error.kind === "invalid_input"` with the received payload echoed under `Received payload:`
+- structurally degraded payloads add a one-line hint telling the caller to resend one complete question or ask the user in plain text instead of retrying with an emptied payload
 - `mode: "submit"` is normal completion; `mode: "elaborate"` means the user asked the agent to continue with follow-up clarification based on notes
 - unanswered questions without notes are omitted from `answers`; note-only entries remain in `answers` to carry their notes, but all non-cancelled submitted result text includes `<label>: (no answer)` in summary mode and `? <label>: (no answer)` in transcript rendering
 - in `mode: "elaborate"`, `answers` contains only committed answers; note-only entries move to `elaboration.items`
