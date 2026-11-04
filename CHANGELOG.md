@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/jwu/pi-ask/compare/fork-v0.3.1...fork-v0.3.2) (2026-11-04)
+
+
+### Bug Fixes
+
+* **schema:** validate question fields at runtime so degraded payloads reach the tool ([cdd48a9](https://github.com/jwu/pi-ask/commit/cdd48a9792db9370949aebb9bd8fba26af58e2db))
+
 ## [0.3.1](https://github.com/jwu/pi-ask/compare/fork-v0.3.0...fork-v0.3.1) (2026-11-03)
 
 
