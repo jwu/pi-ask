@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/jwu/pi-ask/compare/fork-v0.4.1...fork-v0.5.0) (2026-11-10)
+
+
+### Features
+
+* paste clipboard images into ask editors ([028a628](https://github.com/jwu/pi-ask/commit/028a628717c1a800adf597de97cd0e2ae2cf69c2))
+
 ## [0.4.1](https://github.com/jwu/pi-ask/compare/fork-v0.4.0...fork-v0.4.1) (2026-11-10)
 
 
