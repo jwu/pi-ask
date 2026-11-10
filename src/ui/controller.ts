@@ -1,5 +1,6 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme } from "@earendil-works/pi-tui";
+import { readClipboardText, wrapBracketedPaste } from "../clipboard.ts";
 import type { AskConfig } from "../config/schema.ts";
 import { getAskConfigStore } from "../config/store.ts";
 import { BLOCKED_LABEL, reportAsking } from "../herdr-state.ts";
@@ -93,6 +94,8 @@ interface AskFlowController {
 	dismissNotice?: string;
 	done: Done;
 	editor: Editor;
+	keybindings: Keybindings;
+	pasteInFlight: boolean;
 	pendingQuestionTypeChangeQuestionId?: string;
 	pendingReviewShortcutActionIndex?: number;
 	remoteFlow?: RemoteAskFlowHandle;
@@ -151,7 +154,7 @@ export async function runAskFlow(
 }
 
 function createAskFlowController(
-	[tui, theme, _keybindings, done]: [
+	[tui, theme, keybindings, done]: [
 		Tui,
 		Theme,
 		Keybindings,
@@ -167,6 +170,8 @@ function createAskFlowController(
 		dismissNotice: undefined,
 		done,
 		editor: createEditor(tui, theme, params.cwd),
+		keybindings,
+		pasteInFlight: false,
 		settingsOpen: false,
 		state: createInitialState(params, params.flowOptions),
 		suppressAutoInputForSelection: false,
@@ -248,7 +253,8 @@ function handleControllerInput(controller: AskFlowController, data: string) {
 		controller.state,
 		controller.config,
 		data,
-		editingText
+		editingText,
+		controller.keybindings
 	);
 	if (command.kind === "toggleVisibility") {
 		controller.collapsed = !controller.collapsed;
@@ -302,6 +308,10 @@ function handleEditingCommand(
 	}
 	if (command.kind === "editSubmit") {
 		submitEditor(controller, controller.editor.getText());
+		return;
+	}
+	if (command.kind === "pasteClipboard") {
+		pasteClipboardIntoEditor(controller);
 		return;
 	}
 	if (command.kind === "delegateToEditor") {
@@ -374,6 +384,7 @@ function handleNavigationCommand(
 			showSettingsModal(controller);
 			return;
 		case "ignore":
+		case "pasteClipboard":
 		case "editMoveTab":
 		case "editMoveOption":
 		case "editClose":
@@ -483,6 +494,41 @@ function commitSavedEditorNavigation(
 	delta: 1 | -1
 ) {
 	commitState(controller, navigate(saveEditorState(controller), delta));
+}
+
+function pasteClipboardIntoEditor(controller: AskFlowController) {
+	const questionId = getCurrentQuestion(controller.state)?.id;
+	if (controller.pasteInFlight || questionId === undefined) {
+		return;
+	}
+	controller.pasteInFlight = true;
+	readClipboardText()
+		.then((text) => {
+			if (!(text && canPasteIntoEditor(controller, questionId))) {
+				return;
+			}
+			controller.editor.handleInput(wrapBracketedPaste(text));
+			refresh(controller);
+		})
+		.catch(() => {
+			// Clipboard reads are best-effort and must not affect the ask flow.
+		})
+		.finally(() => {
+			controller.pasteInFlight = false;
+		});
+}
+
+function canPasteIntoEditor(
+	controller: AskFlowController,
+	questionId: string
+): boolean {
+	if (controller.collapsed || controller.state.completed) {
+		return false;
+	}
+	return (
+		getCurrentQuestion(controller.state)?.id === questionId &&
+		isEditingView(controller.state)
+	);
 }
 
 function closeEditor(controller: AskFlowController) {

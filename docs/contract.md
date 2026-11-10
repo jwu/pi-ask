@@ -259,6 +259,7 @@ Editing flow:
 - `global.toggleVisibility` collapses and restores the ask panel; modified and multi-byte bindings still toggle while the editor has text, while printable single-character bindings are delegated to a non-empty editor as text
 - when editor has text, arrow keys and `Tab` stay in the editor so the cursor can move while typing
 - when editor is empty, editor-context `*WhenEmpty` navigation actions move options or tabs without requiring the editor close binding first
+- inside an answer or note editor, pi's clipboard binding (`app.clipboard.pasteImage`, `Ctrl+V` by default) reads system clipboard text and inserts it as one atomic paste, so large content collapses to the editor's usual `[paste #n ...]` marker; the binding stays inert in navigation views and is ignored while the flow is collapsed
 - `@` remains a fixed file-reference affordance in editors
 
 Settings modal:

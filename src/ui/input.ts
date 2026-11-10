@@ -7,7 +7,13 @@ import {
 	matchesBinding,
 	matchesDigitShortcut,
 } from "../constants/keymaps.ts";
+import { isEditingView } from "../state/view.ts";
 import type { AskState } from "../types.ts";
+
+/** Minimal shape of pi's keybindings manager, kept structural for tests. */
+export interface AskClipboardKeybindings {
+	matches(data: string, keybinding: "app.clipboard.pasteImage"): boolean;
+}
 
 export type AskInputCommand =
 	| { kind: "moveTab"; delta: 1 | -1 }
@@ -21,6 +27,7 @@ export type AskInputCommand =
 	| { kind: "dismiss" }
 	| { kind: "toggleVisibility" }
 	| { kind: "showSettings" }
+	| { kind: "pasteClipboard" }
 	| { kind: "numberShortcut"; digit: number }
 	| { kind: "editMoveTab"; delta: 1 | -1 }
 	| { kind: "editMoveOption"; delta: 1 | -1 }
@@ -33,7 +40,8 @@ export function getInputCommand(
 	state: AskState,
 	config: AskConfig,
 	data: string,
-	editingText = ""
+	editingText = "",
+	keybindings?: AskClipboardKeybindings
 ): AskInputCommand {
 	const global = getGlobalBindings(config);
 	if (matchesBinding(data, global.dismiss)) {
@@ -49,6 +57,15 @@ export function getInputCommand(
 	}
 	if (matchesBinding(data, global.settings) && editingText.length === 0) {
 		return { kind: "showSettings" };
+	}
+	// pi's clipboard binding (Ctrl+V by default) resolves to a CSI-u sequence in
+	// terminals with the Kitty keyboard protocol, so pi-tui never sees a paste.
+	// Only editors paste; navigation views keep their normal bindings.
+	if (
+		isEditingView(state) &&
+		keybindings?.matches?.(data, "app.clipboard.pasteImage")
+	) {
+		return { kind: "pasteClipboard" };
 	}
 
 	if (state.view.kind === "input") {

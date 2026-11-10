@@ -531,3 +531,59 @@ test("printable visibility bindings yield to non-empty editors", () => {
 		kind: "toggleVisibility",
 	});
 });
+
+test("editors turn the clipboard binding into a paste command", () => {
+	const keybindings = {
+		matches: (data: string, keybinding: string) =>
+			keybinding === "app.clipboard.pasteImage" && data === "\x16",
+	};
+
+	assert.deepEqual(
+		getInputCommand(inputState(), DEFAULT_ASK_CONFIG, "\x16", "", keybindings),
+		{ kind: "pasteClipboard" }
+	);
+
+	let note = inputState();
+	note = enterQuestionNoteMode(note, "q1");
+	assert.deepEqual(
+		getInputCommand(note, DEFAULT_ASK_CONFIG, "\x16", "", keybindings),
+		{ kind: "pasteClipboard" }
+	);
+});
+
+test("the clipboard binding stays inert outside editors", () => {
+	const keybindings = {
+		matches: (data: string, keybinding: string) =>
+			keybinding === "app.clipboard.pasteImage" && data === "\x16",
+	};
+	const navigation = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				options: [{ label: "A", value: "a" }],
+				prompt: "Question?",
+			},
+		],
+	});
+
+	assert.deepEqual(
+		getInputCommand(navigation, DEFAULT_ASK_CONFIG, "\x16", "", keybindings),
+		{ kind: "ignore" }
+	);
+});
+
+test("editors keep forwarding unbound keys to the editor", () => {
+	const keybindings = {
+		matches: (data: string, keybinding: string) =>
+			keybinding === "app.clipboard.pasteImage" && data === "\x16",
+	};
+
+	assert.deepEqual(
+		getInputCommand(inputState(), DEFAULT_ASK_CONFIG, "a", "", keybindings),
+		{ kind: "delegateToEditor" }
+	);
+	assert.deepEqual(
+		getInputCommand(inputState(), DEFAULT_ASK_CONFIG, "\x16", ""),
+		{ kind: "delegateToEditor" }
+	);
+});
