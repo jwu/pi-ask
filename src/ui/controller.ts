@@ -2,7 +2,7 @@ import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme } from "@earendil-works/pi-tui";
 import type { AskConfig } from "../config/schema.ts";
 import { getAskConfigStore } from "../config/store.ts";
-import { reportAsking } from "../herdr-state.ts";
+import { BLOCKED_LABEL, reportAsking } from "../herdr-state.ts";
 import {
 	createQuestionWaitingNotification,
 	notifyQuestionWaiting,
@@ -124,15 +124,26 @@ export async function runAskFlow(
 	}
 	reportAsking(true);
 	try {
-		return await ctx.ui.custom<AskResult>((...args) =>
-			createAskFlowController(args, {
-				...params,
-				config,
-				configNotice: notice?.text,
-				cwd: ctx.cwd,
-				ctx,
-				flowOptions,
-			})
+		// pi 1.5 reports this option itself as blocked program status (OSC 7501),
+		// which Herdr 2 reads. The 0.84 UI types this package pins predate it, and
+		// older pi versions ignore options they don't know.
+		const custom = ctx.ui.custom as (
+			factory: CustomCallback,
+			options: {
+				blocked: { kind: "question"; message: string };
+			}
+		) => Promise<AskResult>;
+		return await custom(
+			(...args) =>
+				createAskFlowController(args, {
+					...params,
+					config,
+					configNotice: notice?.text,
+					cwd: ctx.cwd,
+					ctx,
+					flowOptions,
+				}),
+			{ blocked: { kind: "question", message: BLOCKED_LABEL } }
 		);
 	} finally {
 		reportAsking(false);

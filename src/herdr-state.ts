@@ -1,11 +1,13 @@
-// herdr's pi integration (installed as a pi extension) listens for this
+// Herdr 1's pi integration (installed as a pi extension) listens for this
 // channel on the extension event bus and reports the pane as blocked until it
 // hears `active: false`, so the sidebar shows that the agent is waiting on an
-// answer instead of a working spinner.
+// answer instead of a working spinner. Herdr 2 (herdr-app) has no such
+// integration: pi reports the same state itself through OSC 7501 when the ask
+// form passes a `blocked` option to `ctx.ui.custom`.
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const BLOCKED_CHANNEL = "herdr:blocked";
-const BLOCKED_LABEL = "等待回答";
+export const BLOCKED_LABEL = "等待回答";
 
 type EventBus = ExtensionAPI["events"];
 
