@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/jwu/pi-ask/compare/fork-v0.3.2...fork-v0.4.0) (2026-11-10)
+
+
+### Features
+
+* **ask:** report blocked program status while the form waits ([31f2366](https://github.com/jwu/pi-ask/commit/31f2366e9c00536bad7f16f29d597ddb6a5284f6))
+
 ## [0.3.2](https://github.com/jwu/pi-ask/compare/fork-v0.3.1...fork-v0.3.2) (2026-11-04)
 
 
