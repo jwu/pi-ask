@@ -21,7 +21,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/pending-ask.ts` — active-branch unresolved tool-call detection and recovery dismissal persistence
 - `src/resume-pending-ask.ts` — detached lifecycle wiring and recovered answer delivery
 - `src/notifications.ts` — best-effort ask notification payload rendering and channel execution
-- `src/clipboard.ts` — best-effort system clipboard text reads and bracketed-paste wrapping for ask editors
+- `src/clipboard.ts` — best-effort system clipboard text/image reads, temp-file image saves, and bracketed-paste wrapping for ask editors
 - `src/remote-ask.ts` — package-prefixed local event contract, active-flow registry, and explicit remote submission validation
 - `src/schema.ts` — TypeBox schema
 - `src/types.ts` — shared types

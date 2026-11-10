@@ -1,6 +1,11 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme } from "@earendil-works/pi-tui";
-import { readClipboardText, wrapBracketedPaste } from "../clipboard.ts";
+import {
+	readClipboardImage,
+	readClipboardText,
+	saveClipboardImage,
+	wrapBracketedPaste,
+} from "../clipboard.ts";
 import type { AskConfig } from "../config/schema.ts";
 import { getAskConfigStore } from "../config/store.ts";
 import { BLOCKED_LABEL, reportAsking } from "../herdr-state.ts";
@@ -311,7 +316,9 @@ function handleEditingCommand(
 		return;
 	}
 	if (command.kind === "pasteClipboard") {
-		pasteClipboardIntoEditor(controller);
+		pasteClipboardIntoEditor(controller).catch(() => {
+			// Clipboard reads are best-effort and must not affect the ask flow.
+		});
 		return;
 	}
 	if (command.kind === "delegateToEditor") {
@@ -496,26 +503,34 @@ function commitSavedEditorNavigation(
 	commitState(controller, navigate(saveEditorState(controller), delta));
 }
 
-function pasteClipboardIntoEditor(controller: AskFlowController) {
+async function pasteClipboardIntoEditor(controller: AskFlowController) {
 	const questionId = getCurrentQuestion(controller.state)?.id;
 	if (controller.pasteInFlight || questionId === undefined) {
 		return;
 	}
 	controller.pasteInFlight = true;
-	readClipboardText()
-		.then((text) => {
-			if (!(text && canPasteIntoEditor(controller, questionId))) {
-				return;
+	try {
+		// Images take precedence, matching pi's own clipboard paste behavior.
+		const image = await readClipboardImage();
+		if (image) {
+			const filePath = await saveClipboardImage(image);
+			if (filePath && canPasteIntoEditor(controller, questionId)) {
+				controller.editor.handleInput(wrapBracketedPaste(filePath));
+				refresh(controller);
 			}
-			controller.editor.handleInput(wrapBracketedPaste(text));
-			refresh(controller);
-		})
-		.catch(() => {
-			// Clipboard reads are best-effort and must not affect the ask flow.
-		})
-		.finally(() => {
-			controller.pasteInFlight = false;
-		});
+			return;
+		}
+		const text = await readClipboardText();
+		if (!(text && canPasteIntoEditor(controller, questionId))) {
+			return;
+		}
+		controller.editor.handleInput(wrapBracketedPaste(text));
+		refresh(controller);
+	} catch {
+		// Clipboard reads are best-effort and must not affect the ask flow.
+	} finally {
+		controller.pasteInFlight = false;
+	}
 }
 
 function canPasteIntoEditor(
