@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/jwu/pi-ask/compare/fork-v0.4.0...fork-v0.4.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* paste clipboard text into ask editors ([9f4a348](https://github.com/jwu/pi-ask/commit/9f4a348704cfd59bf88872b2c8cb492b22059ef2))
+
 # [0.4.0](https://github.com/jwu/pi-ask/compare/fork-v0.3.2...fork-v0.4.0) (2026-11-10)
 
 
