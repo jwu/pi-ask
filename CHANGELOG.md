@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/jwu/pi-ask/compare/fork-v1.0.0...fork-v1.0.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **ask:** simplify the transcript call title ([e063e47](https://github.com/jwu/pi-ask/commit/e063e47f4bdb5d866ce17a1fdeeca1e54d1e6186))
+
 # [1.0.0](https://github.com/jwu/pi-ask/compare/fork-v0.5.0...fork-v1.0.0) (2026-11-19)
 
 
