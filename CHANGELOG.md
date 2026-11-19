@@ -1,3 +1,12 @@
+## [1.0.2](https://github.com/jwu/pi-ask/compare/fork-v1.0.1...fork-v1.0.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* **ask:** preserve Chinese freeform questions in answer extraction ([12e43be](https://github.com/jwu/pi-ask/commit/12e43be8d4589eabefd5a0f3a664b3905ed9ef54))
+* **ask:** stop cancelled runs and reinforce recommendations ([1074b43](https://github.com/jwu/pi-ask/commit/1074b43cce5340f91420092683f727f5830c172f))
+* **ask:** use the current chat model for answer extraction ([a045602](https://github.com/jwu/pi-ask/commit/a0456023e29e942acbabade86c4995d33aa743ae))
+
 ## [1.0.1](https://github.com/jwu/pi-ask/compare/fork-v1.0.0...fork-v1.0.1) (2026-11-19)
 
 
