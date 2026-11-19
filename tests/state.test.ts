@@ -477,18 +477,6 @@ test("submit can complete even when some questions are unanswered", () => {
 	assert.equal(state.mode, "submit");
 });
 
-test("submit tab can complete in elaborate mode", () => {
-	let state = createInitialState(sampleParams());
-	state = moveTab(state, -1);
-	state = moveOption(state, 1);
-	assert.equal(state.activeSubmitActionIndex, 1);
-	state = confirmCurrentSelection(state);
-
-	assert.equal(state.completed, true);
-	assert.equal(state.cancelled, false);
-	assert.equal(state.mode, "elaborate");
-});
-
 test("selecting other enters input mode and custom submit stores typed answer", () => {
 	let state = createInitialState({
 		questions: [
@@ -866,17 +854,12 @@ test("submit tab number shortcuts trigger matching review actions", () => {
 	assert.equal(submitted.cancelled, false);
 	assert.equal(submitted.mode, "submit");
 
-	const elaborated = applyNumberShortcut(state, 2);
-	assert.equal(elaborated.completed, true);
-	assert.equal(elaborated.cancelled, false);
-	assert.equal(elaborated.mode, "elaborate");
-
-	const cancelled = applyNumberShortcut(state, 3);
+	const cancelled = applyNumberShortcut(state, 2);
 	assert.equal(cancelled.completed, true);
 	assert.equal(cancelled.cancelled, true);
 	assert.equal(cancelled.mode, "submit");
 
-	const ignored = applyNumberShortcut(state, 4);
+	const ignored = applyNumberShortcut(state, 3);
 	assert.equal(ignored.completed, false);
 	assert.equal(ignored.cancelled, false);
 	assert.equal(ignored.activeSubmitActionIndex, 0);

@@ -33,7 +33,7 @@ export const ASK_TOOL_PROMPT_GUIDELINES = [
 	"Each question must have 2-4 options. Give each one a concise label and a description explaining its meaning or trade-offs. The tool automatically offers a custom answer.",
 	"Set multiSelect: true when multiple answers are valid. For single-select questions, use an option's preview for concrete Markdown examples. Mark a grounded recommendation with recommended: true and explain it in the description.",
 	"Group independent clarifying questions into one invocation. Ask sequentially when a later question depends on the previous answer.",
-	"After the user picks 进一步说明 (Elaborate), answer their notes first. Re-ask only the affected questions if a choice is still needed.",
+	"When a result requests elaboration, address the user's notes first. Re-ask only the affected questions if a choice is still needed.",
 ] as const;
 
 interface ValidateParamsOptions {

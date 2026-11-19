@@ -120,17 +120,6 @@ function renderReviewQuestion(
 			"     "
 		);
 	}
-
-	for (const optionNote of question.extraOptionNotes ?? []) {
-		pushSavedNote({
-			lines,
-			note: optionNote.note,
-			width,
-			theme,
-			indent: "     ",
-			label: optionNote.label,
-		});
-	}
 }
 
 function renderSubmitActions(

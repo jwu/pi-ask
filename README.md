@@ -54,7 +54,7 @@ Once installed, this package gives the agent a native way to ask for clarificati
 - ✍️ Inline free-form `Type your own` answers
 - 📎 Native pi-style `@` file references inside answer and note editors
 - 📝 Question-level and option-level notes
-- 👀 Review tab with `Submit`, `进一步说明` (Elaborate), and `Cancel`
+- 👀 Review tab with `Submit` and `Cancel`
 - 💬 Elaboration flow to capture note-based clarification before final submission
 - ⌨️ Context-aware customizable keymaps with aliases for main flow, editors, and settings
 - ⚙️ Ask settings with persisted behaviour, notifications, keymaps, and `/answer` extraction config
@@ -80,12 +80,9 @@ Attach clarification notes to a specific option (`n`) or add broader question-le
 |---|---|
 | ![Option note editor with note text for selected option](docs/media/feature-option-note.png) | ![Question-level note editor with saved note](docs/media/feature-question-note.png) |
 
-### Review tab — 进一步说明 (Elaborate) and Submit
-Ask the agent to elaborate on notes before finalizing choices, or review all answers before returning them to the agent.
+### Review tab
 
-| 进一步说明 (Elaborate) | Submit |
-|---|---|
-| ![Review tab with Elaborate action and expanded note preview](docs/media/feature-review-elaborate.png) | ![Review tab with Submit action highlighted](docs/media/feature-review-submit.png) |
+Review your answers before choosing `Submit` or `Cancel`.
 
 ### Single-select and multi-select questions
 Pick one option when answers are mutually exclusive, or choose multiple options when several answers apply.
@@ -126,7 +123,7 @@ Fixed bindings:
 | Key | Context | Effect |
 |---|---|---|
 | `1..9` | Options list | Select or toggle matching option |
-| `1` `2` `3` | Review tab | Trigger `Submit` / `进一步说明` (Elaborate) / `Cancel` |
+| `1` `2` | Review tab | Trigger `Submit` / `Cancel` |
 | `@` | Editors | File-reference affordance |
 | Arrow keys / `Tab` | Non-empty editor | Stay in editor for cursor movement |
 

@@ -44,9 +44,9 @@ test("submit screen renders the compact action labels without extra prompt copy"
 		UI_DIMENSIONS.submitWideMinWidth + 16
 	);
 
-	assert.equal(lines[0], "❯ 1. Submit       Review answers");
-	assert.equal(lines[1], "  2. 进一步说明  ");
-	assert.equal(lines[2], "  3. Cancel       Single");
+	assert.equal(lines[0], "❯ 1. Submit   Review answers");
+	assert.equal(lines[1], "  2. Cancel  ");
+	assert.equal(lines[2], "              Single");
 	assert(!lines.join("\n").includes("Submit answers?"));
 	assert(!lines.join("\n").includes("Submit answers"));
 });
@@ -72,10 +72,10 @@ test("submit screen keeps review and actions grouped side by side on wide screen
 	);
 
 	assert.deepEqual(lines, [
-		"❯ 1. Submit       Review answers",
-		"  2. 进一步说明  ",
-		"  3. Cancel       Color",
-		"                    → unanswered",
+		"❯ 1. Submit   Review answers",
+		"  2. Cancel  ",
+		"              Color",
+		"                → unanswered",
 	]);
 });
 
@@ -106,8 +106,7 @@ test("submit screen stacks review above actions on narrow screens", () => {
 		"   → unanswered",
 		"",
 		"❯ 1. Submit",
-		"  2. 进一步说明",
-		"  3. Cancel",
+		"  2. Cancel",
 	]);
 });
 
@@ -129,14 +128,16 @@ test("submit screen can show a review shortcut hint below the actions", () => {
 		state,
 		plainTheme(),
 		UI_DIMENSIONS.submitWideMinWidth - 14,
-		"Press 1, 2, or 3 twice to confirm a review action."
+		"Press 1 or 2 twice to confirm a review action."
 	);
 
-	assert.equal(
-		lines.includes(" Press 1, 2, or 3 twice to confirm a review"),
-		true
+	assert(
+		lines
+			.slice(7)
+			.map((line) => line.trim())
+			.join(" ")
+			.includes("Press 1 or 2 twice to confirm a review action.")
 	);
-	assert.equal(lines.includes(" action."), true);
 });
 
 test("submit screen shows notes only for answered questions in submit mode", () => {
@@ -205,53 +206,6 @@ test("submit screen shows notes only for answered questions in submit mode", () 
 	);
 });
 
-test("submit screen shows all notes when elaborate action is selected", () => {
-	let state = createInitialState({
-		questions: [
-			{
-				id: "q1",
-				label: "Single",
-				prompt: "Pick one primary demo style.",
-				options: [
-					{ value: "code", label: "Code demo" },
-					{ value: "slides", label: "Slides demo" },
-				],
-			},
-			{
-				id: "q2",
-				label: "Multi",
-				prompt: "Pick any extra things to include.",
-				options: [{ value: "extra", label: "Extra" }],
-			},
-		],
-	});
-
-	state = enterQuestionNoteMode(state, "q1");
-	state = saveNote(state, "Question note");
-	state = applyNumberShortcut(state, 1);
-	state = enterOptionNoteMode(state, "q1", "code");
-	state = saveNote(state, "Selected option note");
-	state = enterOptionNoteMode(state, "q1", "slides");
-	state = saveNote(state, "Unselected option note");
-	state = enterQuestionNoteMode(state, "q2");
-	state = saveNote(state, "Second note");
-	state = { ...state, activeSubmitActionIndex: 1 };
-
-	const lines: string[] = [];
-	renderSubmitScreen(
-		lines,
-		state,
-		plainTheme(),
-		UI_DIMENSIONS.submitWideMinWidth + 16
-	);
-
-	assert(lines.some((line) => line.includes("Question note")));
-	assert(lines.some((line) => line.includes("Selected option note")));
-	assert(lines.some((line) => line.includes("Unselected option note")));
-	assert(lines.some((line) => line.includes("Slides demo Note:")));
-	assert(lines.some((line) => line.includes("Second note")));
-});
-
 test("submit screen renders multi-select option notes under their related answers", () => {
 	let state = createInitialState({
 		questions: [
@@ -303,7 +257,7 @@ test("submit screen renders multi-select option notes under their related answer
 	assert(secondAnswerIndex < secondNoteIndex);
 });
 
-test("submit action column keeps all three actions on consecutive rows at the wide breakpoint", () => {
+test("submit action column keeps both actions on consecutive rows at the wide breakpoint", () => {
 	const state = createInitialState({
 		questions: [
 			{
@@ -323,8 +277,8 @@ test("submit action column keeps all three actions on consecutive rows at the wi
 		UI_DIMENSIONS.submitWideMinWidth
 	);
 
-	assert.equal(lines[0], "❯ 1. Submit       Review answers");
-	assert.equal(lines[1], "  2. 进一步说明  ");
-	assert.equal(lines[2], "  3. Cancel       Color");
-	assert.equal(lines[3], "                    → unanswered");
+	assert.equal(lines[0], "❯ 1. Submit   Review answers");
+	assert.equal(lines[1], "  2. Cancel  ");
+	assert.equal(lines[2], "              Color");
+	assert.equal(lines[3], "                → unanswered");
 });

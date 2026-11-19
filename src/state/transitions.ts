@@ -1,3 +1,4 @@
+import { SUBMIT_CHOICES } from "../constants/text.ts";
 import type { AskAction, AskState } from "../types.ts";
 import {
 	emptyAnswer,
@@ -32,8 +33,6 @@ import {
 	questionNoteView,
 	submitView,
 } from "./view.ts";
-
-const SUBMIT_ACTION_COUNT = 3;
 
 export function createInitialState(params: {
 	title?: string;
@@ -134,7 +133,7 @@ export function applyNumberShortcut(state: AskState, digit: number): AskState {
 	}
 
 	if (isSubmitTab(state)) {
-		if (digit > SUBMIT_ACTION_COUNT) {
+		if (digit > SUBMIT_CHOICES.length) {
 			return state;
 		}
 		return confirmCurrentSelection({
@@ -169,11 +168,8 @@ export function saveNote(state: AskState, rawValue: string): AskState {
 }
 
 function completeSubmitAction(state: AskState): AskState {
-	if (state.activeSubmitActionIndex === 2) {
-		return { ...state, cancelled: true, completed: true };
-	}
 	if (state.activeSubmitActionIndex === 1) {
-		return { ...state, mode: "elaborate", completed: true };
+		return { ...state, cancelled: true, completed: true };
 	}
 	return { ...state, mode: "submit", completed: true };
 }

@@ -15,7 +15,6 @@ import type {
 } from "../types.ts";
 import {
 	cloneResultAnswer,
-	getExtraOptionNotes,
 	hasAnswerNotes,
 	isAnswerAnswered,
 	isAnswerEmpty,
@@ -25,13 +24,6 @@ import {
 	serializeAnswer,
 } from "./answers.ts";
 import { getQuestionOptionByValue } from "./selectors.ts";
-
-export type ReviewAnswer = AskResult["answers"][string] & {
-	extraOptionNotes?: Array<{
-		label: string;
-		note: string;
-	}>;
-};
 
 export function toAskResult(state: AskState): AskResult {
 	const answers = Object.fromEntries(
@@ -221,40 +213,18 @@ function toCommittedResultAnswer(
 }
 
 export function toReviewAnswer(
-	question: AskState["questions"][number],
-	answer: AskStateAnswer | undefined,
-	showAllNotes: boolean
-): ReviewAnswer | undefined {
+	answer: AskStateAnswer | undefined
+): AskResultAnswer | undefined {
 	if (!answer) {
 		return;
 	}
-
 	const serialized = serializeAnswer(answer);
-	const hasCommittedAnswer = isResultAnswerCommitted(serialized);
-	if (!showAllNotes) {
-		return hasCommittedAnswer ? serialized : undefined;
-	}
-
-	const extraOptionNotes = getExtraOptionNotes({
-		answer,
-		questionOptions: question.options,
-		selectedValues: serialized.values,
-	});
-	if (
-		!(hasCommittedAnswer || serialized.note) &&
-		extraOptionNotes.length === 0
-	) {
-		return;
-	}
-
-	return {
-		...serialized,
-		extraOptionNotes:
-			extraOptionNotes.length > 0 ? extraOptionNotes : undefined,
-	};
+	return isResultAnswerCommitted(serialized) ? serialized : undefined;
 }
 
-export function shouldRenderAnswersIndividually(answer: ReviewAnswer): boolean {
+export function shouldRenderAnswersIndividually(
+	answer: AskResultAnswer
+): boolean {
 	if (!answer.labels.length) {
 		return false;
 	}

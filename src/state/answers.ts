@@ -5,11 +5,6 @@ import type {
 	AskStateAnswer,
 } from "../types.ts";
 
-export interface ExtraOptionNote {
-	label: string;
-	note: string;
-}
-
 export function emptyAnswer(): AskStateAnswer {
 	return { selected: [] };
 }
@@ -227,23 +222,6 @@ export function serializeAnswer(answer: AskStateAnswer): AskResultAnswer {
 				? selectedNotes
 				: undefined,
 	};
-}
-
-export function getExtraOptionNotes(args: {
-	answer: AskStateAnswer;
-	questionOptions: Array<{ value: string; label: string }>;
-	selectedValues?: Iterable<string>;
-}): ExtraOptionNote[] {
-	const selectedValues = new Set(args.selectedValues ?? []);
-	return Object.entries(args.answer.optionNotes ?? {})
-		.filter(([value, note]) => !selectedValues.has(value) && Boolean(note))
-		.map(([value, note]) => {
-			const option = args.questionOptions.find(
-				(candidate) => candidate.value === value
-			);
-			return option ? { label: option.label, note } : undefined;
-		})
-		.filter((entry): entry is ExtraOptionNote => Boolean(entry));
 }
 
 function cloneSelection(selection: AskSelectedOption): AskSelectedOption {

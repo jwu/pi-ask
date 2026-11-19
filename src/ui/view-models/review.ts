@@ -3,11 +3,10 @@ import { SUBMIT_CHOICES } from "../../constants/text.ts";
 import { UI_DIMENSIONS } from "../../constants/ui.ts";
 import { isCustomOnlyAnswer } from "../../state/answers.ts";
 import {
-	type ReviewAnswer,
 	shouldRenderAnswersIndividually,
 	toReviewAnswer,
 } from "../../state/result.ts";
-import type { AskState } from "../../types.ts";
+import type { AskResultAnswer, AskState } from "../../types.ts";
 
 export interface ReviewSelectionModel {
 	label: string;
@@ -16,7 +15,6 @@ export interface ReviewSelectionModel {
 
 export interface ReviewQuestionModel {
 	answerText?: string;
-	extraOptionNotes?: Array<{ label: string; note: string }>;
 	isCustomOnly?: boolean;
 	label: string;
 	note?: string;
@@ -35,7 +33,6 @@ export function buildReviewScreenModel(
 	state: AskState,
 	width: number
 ): ReviewScreenModel {
-	const showAllNotes = state.activeSubmitActionIndex === 1;
 	const actionColumnWidth = getSubmitActionColumnWidth();
 	return {
 		actionColumnWidth,
@@ -49,7 +46,7 @@ export function buildReviewScreenModel(
 		questions: state.questions.map((question) =>
 			toReviewQuestionModel(
 				question.label,
-				toReviewAnswer(question, state.answers[question.id], showAllNotes)
+				toReviewAnswer(state.answers[question.id])
 			)
 		),
 	};
@@ -57,7 +54,7 @@ export function buildReviewScreenModel(
 
 function toReviewQuestionModel(
 	label: string,
-	answer: ReviewAnswer | undefined
+	answer: AskResultAnswer | undefined
 ): ReviewQuestionModel {
 	if (!answer) {
 		return { label, unanswered: true };
@@ -67,7 +64,6 @@ function toReviewQuestionModel(
 		answerText: shouldRenderAnswersIndividually(answer)
 			? undefined
 			: answer.labels.join(", "),
-		extraOptionNotes: answer.extraOptionNotes,
 		isCustomOnly: isCustomOnlyAnswer(answer),
 		label,
 		note: answer.note,

@@ -252,7 +252,7 @@ export function applyRemoteAskResponse(
 			...state,
 			answers: validation.answers,
 			activeTabIndex: state.questions.length,
-			activeSubmitActionIndex: response.mode === "elaborate" ? 1 : 0,
+			activeSubmitActionIndex: 0,
 			completed: true,
 			mode: response.mode ?? "submit",
 			view: { kind: "submit" },

@@ -157,7 +157,7 @@ This document defines the stable external behavior. It does not explain internal
 - payloads without a `questions` array fail Pi's schema validation before tool execution and use Pi's standard tool-error result without structured `details`
 - question fields are validated at runtime: an empty question object, missing `options`, or an empty `questions` array returns `error.kind === "invalid_input"` with the received payload echoed under `Received payload:`
 - structurally degraded payloads add a one-line hint telling the caller to resend one complete question or ask the user in plain text instead of retrying with an emptied payload
-- `mode: "submit"` is normal completion; `mode: "elaborate"` means the user asked the agent to continue with follow-up clarification based on notes
+- `mode: "submit"` is normal completion; `mode: "elaborate"` is available through the remote answer interface for follow-up clarification based on notes
 - unanswered questions without notes are omitted from `answers`; note-only entries remain in `answers` to carry their notes, but all non-cancelled submitted result text includes `<label>: (no answer)` in summary mode and `? <label>: (no answer)` in transcript rendering
 - in `mode: "elaborate"`, `answers` contains only committed answers; note-only entries move to `elaboration.items`
 - `continuation.strategy === "refine_only"` means the next ask should refine the current flow rather than restart it
@@ -187,7 +187,7 @@ This document defines the stable external behavior. It does not explain internal
 - once prior answers narrow the branch, agents should bundle the next 2-3 related unresolved questions into one follow-up ask when possible, instead of using a long sequence of single-question asks
 - `elaboration` is only present when `mode === "elaborate"`
 - elaborate `content` text and transcript rendering describe each note directly using the full question prompt and option label, and include the current committed answer text when available, instead of a generic elaboration banner
-- when the user selects `进一步说明` (Elaborate) without adding notes, elaborate `content` text and transcript rendering still include the committed answer text so the agent can elaborate on that answer directly
+- when a remote answer requests elaboration without notes, elaborate `content` text and transcript rendering still include the committed answer text so the agent can elaborate on that answer directly
 
 ## Supported UX
 
@@ -200,9 +200,8 @@ This document defines the stable external behavior. It does not explain internal
 - question notes via `Shift+N`
 - option notes via `n`
 - number-key quick selection
-- submit/elaborate/cancel review tab
+- review tab with `Submit` and `Cancel`
 - on the review tab, `Submit` and `Cancel` preview notes only for answered questions
-- on the review tab, `进一步说明` (Elaborate) preview expands to all question notes and all option notes, including notes on unselected options
 - transcript-friendly call and result rendering
 - `/answer` command to convert the latest completed assistant message into an `AskParams` form through a synthetic `ask_user` tool call and open the ask UI
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
@@ -230,8 +229,8 @@ Main flow:
 - `main.confirm`, `main.cancel`, and `main.toggle` confirm, cancel, or toggle; defaults: `Enter`, `Esc`, `Space`
 - `main.changeQuestionType` changes the active question type (non-preview: `single <-> multi`; preview: `preview <-> multi`); default: `t`; destructive `multi -> single` changes require pressing the type hotkey again, with no timeout, and the pending confirmation clears on other navigation/actions
 - `main.optionNote` and `main.questionNote` open option/question notes; defaults: `n`, `Shift+N`
-- `1..9` is fixed and selects or toggles the matching option; on the review tab, `1`, `2`, and `3` trigger `Submit`, `进一步说明` (Elaborate), and `Cancel`
-- when `Double-press review shortcuts` is enabled, review-tab `1`, `2`, and `3` require the same key twice without a timeout, and the review screen shows an inline hint for the pending action
+- `1..9` is fixed and selects or toggles the matching option; on the review tab, `1` triggers `Submit` and `2` triggers `Cancel`
+- when `Double-press review shortcuts` is enabled, review-tab `1` and `2` require the same key twice without a timeout, and the review screen shows an inline hint for the pending action
 
 Editing flow:
 
@@ -294,7 +293,7 @@ See [`remote-events.md`](remote-events.md) for payload shapes, examples, and a l
 - missing or invalid tool calls are retried according to `answer.extractionRetries`; raw or fenced JSON text remains supported as a last-resort fallback
 - `{ "questions": [] }` from extraction means no questions were found and is not treated as an invalid ask payload
 - command-flow cancellation closes with a notification and does not send a message to the agent
-- submitted or elaborated command-flow results are sent back with user-message semantics
+- submitted command-flow results are sent back with user-message semantics, including elaboration requested through the remote answer interface
 - replay commands scan only `ctx.sessionManager.getBranch()`, ignore sibling/future branch payloads, and revalidate stored payloads before opening the UI
 
 ## Interrupted ask resume

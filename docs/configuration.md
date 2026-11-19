@@ -143,7 +143,7 @@ pi auth check --provider openai-codex --model gpt-5.4-mini
 
 - type: boolean
 - default: `true`
-- effect: when enabled, review-tab number shortcuts (`1`, `2`, `3`) only trigger after pressing the same key twice
+- effect: when enabled, review-tab number shortcuts (`1`, `2`) only trigger after pressing the same key twice
 - the review screen shows an inline hint and keeps the pending shortcut armed until another review shortcut is pressed or the user leaves the tab
 
 ### `behaviour.presentSingleAsMulti`
@@ -321,7 +321,7 @@ Examples:
 These are intentionally not configurable:
 
 - `1..9` triggers option/review shortcuts
-- when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
+- when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1` and `2` require the same key twice
 - `@` remains the file-reference affordance in editors
 
 ### Input method (IME) characters

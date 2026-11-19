@@ -19,17 +19,23 @@ test("review shortcut double press requires the same digit twice", () => {
 
 test("review shortcut double press switches pending action when digit changes", () => {
 	const first = resolveReviewShortcutDoublePress(1);
-	const second = resolveReviewShortcutDoublePress(3, first.pendingActionIndex);
+	const second = resolveReviewShortcutDoublePress(2, first.pendingActionIndex);
 
 	assert.equal(second.confirmed, false);
-	assert.equal(second.actionIndex, 2);
-	assert.equal(second.pendingActionIndex, 2);
+	assert.equal(second.actionIndex, 1);
+	assert.equal(second.pendingActionIndex, 1);
 });
 
 test("review shortcut hint reflects pending confirmation state", () => {
 	assert.equal(
 		getReviewShortcutHint(),
-		"Press 1, 2, or 3 twice to confirm a review action."
+		"Press 1 or 2 twice to confirm a review action."
 	);
-	assert.equal(getReviewShortcutHint(1), "Press 2 again to 进一步说明.");
+	assert.equal(getReviewShortcutHint(1), "Press 2 again to Cancel.");
+});
+
+test("review shortcut ignores the removed third action", () => {
+	assert.deepEqual(resolveReviewShortcutDoublePress(3, 1), {
+		confirmed: false,
+	});
 });
