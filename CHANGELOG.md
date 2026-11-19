@@ -1,3 +1,18 @@
+# [1.0.0](https://github.com/jwu/pi-ask/compare/fork-v0.5.0...fork-v1.0.0) (2026-11-19)
+
+
+* feat(ask)!: simplify questionnaire inputs and render Markdown previews ([871614b](https://github.com/jwu/pi-ask/commit/871614bf898c89c0f9f184b45b0c1d650c41b7f7))
+
+
+### Features
+
+* **ask:** streamline review to submit and cancel ([9828430](https://github.com/jwu/pi-ask/commit/9828430137a591d6c87fec99c0f43c2a791ac6b5))
+
+
+### BREAKING CHANGES
+
+* ask_user takes header, question, and labeled options. Forms saved by earlier versions must be asked again.
+
 # [0.5.0](https://github.com/jwu/pi-ask/compare/fork-v0.4.1...fork-v0.5.0) (2026-11-10)
 
 
