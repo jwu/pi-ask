@@ -202,7 +202,7 @@ This document defines the stable external behavior. It does not explain internal
 - number-key quick selection
 - review tab with `Submit` and `Cancel`
 - on the review tab, `Submit` and `Cancel` preview notes only for answered questions
-- transcript-friendly call and result rendering
+- transcript calls show a bold `Ask` title followed by accent-colored question headers in order, separated by ` · `
 - `/answer` command to convert the latest completed assistant message into an `AskParams` form through a synthetic `ask_user` tool call and open the ask UI
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
 - `/answer:again` command to replay the latest `/answer`-extracted form on the current branch

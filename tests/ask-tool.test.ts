@@ -206,20 +206,38 @@ test("ask tool reports ambiguous labels and duplicate questions before opening U
 	assert.match(result.content[0].text, RECEIVED_PAYLOAD_RE);
 });
 
-test("ask tool transcript renderers summarize call and cancelled result", () => {
+test("ask tool transcript shows an Ask title and accent-colored headers", () => {
 	const { tool } = registerMockTool();
 	const theme = {
-		bold: (text: string) => text,
-		fg: (_token: string, text: string) => text,
+		bold: (text: string) => `<bold>${text}</bold>`,
+		fg: (token: string, text: string) => `<${token}>${text}</${token}>`,
 	};
 
 	const callText = tool.renderCall(
 		{
-			questions: [{ header: "Goal" }, { header: "Tone" }],
+			questions: [
+				{ header: " 发布策略 " },
+				{ header: "验收条件" },
+				{ header: "异常处置" },
+			],
 		},
 		theme
 	).text;
-	assert.equal(callText, "ask_user 2 question(s) (Goal, Tone)");
+	assert.equal(
+		callText,
+		"<toolTitle><bold>Ask</bold></toolTitle> <accent>发布策略 · 验收条件 · 异常处置</accent>"
+	);
+	assert.equal(
+		tool.renderCall({}, theme).text,
+		"<toolTitle><bold>Ask</bold></toolTitle>"
+	);
+});
+
+test("ask tool transcript renders cancelled and invalid results", () => {
+	const { tool } = registerMockTool();
+	const theme = {
+		fg: (_token: string, text: string) => text,
+	};
 
 	const resultText = tool.renderResult(
 		{

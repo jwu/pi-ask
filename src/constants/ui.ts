@@ -1,6 +1,5 @@
 export const UI_DIMENSIONS = {
 	boxMinWidth: 10,
-	callLabelTruncateWidth: 50,
 	editorContentPadding: 5,
 	editorIndentedPadding: 7,
 	editorMinWidth: 8,

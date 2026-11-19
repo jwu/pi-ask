@@ -1,6 +1,5 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { Text, truncateToWidth } from "@earendil-works/pi-tui";
-import { UI_DIMENSIONS } from "./constants/ui.ts";
+import { Text } from "@earendil-works/pi-tui";
 import { renderResultText } from "./result.ts";
 import { createInitialState } from "./state/create.ts";
 import { collectValidationIssues } from "./state/normalize.ts";
@@ -103,16 +102,10 @@ export function renderAskToolCall(args: unknown, theme: ToolTheme) {
 						(typeof header === "string" && header.trim()) || `Q${index + 1}`
 					);
 				})
-				.join(", ")
+				.join(" · ")
 		: "";
-	let text = theme.fg("toolTitle", theme.bold("ask_user "));
-	text += theme.fg("muted", `${params?.questions?.length ?? 0} question(s)`);
-	if (labels) {
-		text += theme.fg(
-			"dim",
-			` (${truncateToWidth(labels, UI_DIMENSIONS.callLabelTruncateWidth)})`
-		);
-	}
+	const title = theme.fg("toolTitle", theme.bold("Ask"));
+	const text = labels ? `${title} ${theme.fg("accent", labels)}` : title;
 	return new Text(text, 0, 0);
 }
 
