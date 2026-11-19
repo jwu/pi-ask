@@ -288,6 +288,7 @@ function optionRestatesQuestion(
 	const normalizedLabel = normalizeText(label);
 	const normalizedPrompt = normalizeText(prompt);
 	return (
+		!!normalizedPrompt &&
 		normalizedLabel.length > 8 &&
 		(normalizedPrompt.includes(normalizedLabel) ||
 			normalizedLabel.includes(normalizedPrompt))

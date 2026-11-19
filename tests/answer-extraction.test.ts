@@ -65,6 +65,34 @@ test("repairExtractionParams drops generic conversational prompts", () => {
 	assert.deepEqual(repaired.questions, []);
 });
 
+test("extraction preserves a Chinese freeform question after a choice question", () => {
+	const params = {
+		questions: [
+			{
+				id: "cafe_seating",
+				prompt: "在咖啡馆里，你更喜欢坐窗边、吧台，还是安静的角落？",
+				options: [
+					{ value: "window", label: "窗边" },
+					{ value: "counter", label: "吧台" },
+					{ value: "quiet_corner", label: "安静的角落" },
+				],
+			},
+			{
+				id: "talking_cat",
+				prompt: "如果窗台上的猫会说话，你最想问它什么？",
+				options: [{ value: "freeform", label: "Type answer", freeform: true }],
+			},
+		],
+	};
+
+	assert.deepEqual(parseExtractionCandidate(JSON.stringify(params)), {
+		ok: true,
+		params,
+		issues: [],
+	});
+	assert.deepEqual(repairExtractionParams(params), params);
+});
+
 test("extraction context includes the tool and preceding turn", () => {
 	const context = createExtractionContext({
 		assistantText: "Which direction: A or B?",
