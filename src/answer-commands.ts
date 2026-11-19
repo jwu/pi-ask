@@ -4,10 +4,7 @@ import {
 	type ExtensionCommandContext,
 	type ExtensionContext,
 } from "@earendil-works/pi-coding-agent";
-import {
-	extractAskParams,
-	selectExtractionModel,
-} from "./answer-extraction.ts";
+import { extractAskParams } from "./answer-extraction.ts";
 import {
 	type AskPayloadSource,
 	appendAskPayload,
@@ -29,10 +26,7 @@ interface AssistantTextSource {
 	text: string;
 }
 
-type ExtractionSelection = Exclude<
-	Awaited<ReturnType<typeof selectExtractionModel>>,
-	{ error: string }
->;
+type ChatModel = NonNullable<ExtensionContext["model"]>;
 
 type ExtractionUiResult =
 	| { cancelled: true }
@@ -91,26 +85,17 @@ async function runAnswerCommand(
 		return;
 	}
 
-	const config = await getAskConfigStore().getConfig();
-	const selected = await selectExtractionModel(
-		ctx,
-		config.answer.extractionModels
-	);
-	if ("error" in selected) {
-		ctx.ui.notify(selected.error, "error");
+	const model = ctx.model;
+	if (!model) {
+		ctx.ui.notify("Select a chat model before running /answer.", "error");
 		return;
 	}
-	if (selected.usedFallback) {
-		ctx.ui.notify(
-			`Configured extraction models unavailable; using current chat model ${selected.model.provider}/${selected.model.id}.`,
-			"info"
-		);
-	}
 
+	const config = await getAskConfigStore().getConfig();
 	const params = await extractAndValidateAnswerParams(
 		ctx,
 		assistant,
-		selected,
+		model,
 		config
 	);
 	if (!params) {
@@ -133,11 +118,11 @@ async function runAnswerCommand(
 async function extractAndValidateAnswerParams(
 	ctx: ExtensionCommandContext,
 	assistant: AssistantTextSource,
-	selected: ExtractionSelection,
+	model: ChatModel,
 	config: Awaited<ReturnType<ReturnType<typeof getAskConfigStore>["getConfig"]>>
 ): Promise<AskParams | undefined> {
 	const extraction = await withHiddenWorkingRow(ctx, () =>
-		runExtractionUi(ctx, assistant, selected, config)
+		runExtractionUi(ctx, assistant, model, config)
 	);
 	if ("cancelled" in extraction) {
 		ctx.ui.notify("Question extraction cancelled.", "info");
@@ -173,7 +158,7 @@ async function extractAndValidateAnswerParams(
 function runExtractionUi(
 	ctx: ExtensionCommandContext,
 	assistant: AssistantTextSource,
-	selected: ExtractionSelection,
+	model: ChatModel,
 	config: Awaited<ReturnType<ReturnType<typeof getAskConfigStore>["getConfig"]>>
 ): Promise<ExtractionUiResult> {
 	return ctx.ui.custom<ExtractionUiResult>((tui, theme, _keybindings, done) => {
@@ -188,7 +173,7 @@ function runExtractionUi(
 		const loader = new BorderedLoader(
 			tui,
 			theme,
-			`Extracting questions using ${selected.model.provider}/${selected.model.id}...`
+			`Extracting questions using ${model.provider}/${model.id}...`
 		);
 		loader.onAbort = () => doneOnce({ cancelled: true });
 		extractAskParams({
@@ -196,7 +181,7 @@ function runExtractionUi(
 			previousUserText: assistant.previousUserText,
 			complete: (model, context, options) =>
 				ctx.modelRegistry.complete(model, context, options),
-			model: selected.model,
+			model,
 			onRetry: (attempt, maxRetries) => {
 				ctx.ui.notify(
 					`Retrying question extraction (${attempt}/${maxRetries})...`,
@@ -240,7 +225,7 @@ function formatExtractionError(error: string): string {
 		error.includes("AbortError") ||
 		error.includes("timed out")
 	) {
-		return "Question extraction timed out. Try again or configure a faster extraction model.";
+		return "Question extraction timed out. Try again or switch to a faster chat model.";
 	}
 	return error;
 }

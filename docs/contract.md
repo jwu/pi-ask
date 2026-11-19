@@ -202,7 +202,7 @@ This document defines the stable external behavior. It does not explain internal
 - number-key quick selection
 - review tab with `Submit` and `Cancel`
 - on the review tab, `Submit` and `Cancel` preview notes only for answered questions
-- transcript calls show a bold `Ask` title followed by accent-colored question headers in order, separated by ` · `
+- transcript calls show the tool name `ask_user` in bold followed by accent-colored question headers in order, separated by ` · `
 - `/answer` command to convert the latest completed assistant message into an `AskParams` form through a synthetic `ask_user` tool call and open the ask UI
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
 - `/answer:again` command to replay the latest `/answer`-extracted form on the current branch
@@ -289,7 +289,7 @@ See [`remote-events.md`](remote-events.md) for payload shapes, examples, and a l
 
 - valid `ask_user` payloads are persisted as version 2 branch custom entries before the UI opens, so `/ask:replay` can reopen them after cancel, `/resume`, or `/tree`. Version 1 forms must be asked again using the new input format
 - `/answer` scans the current branch for the latest assistant message; if that message did not finish with `stop`, extraction is refused
-- `/answer` sends the preceding user message as context with the latest assistant text and asks the extractor for one synthetic `ask_user` tool call
+- `/answer` sends the latest assistant text and preceding user message to the current chat model and requests one synthetic `ask_user` tool call
 - missing or invalid tool calls are retried according to `answer.extractionRetries`; raw or fenced JSON text remains supported as a last-resort fallback
 - `{ "questions": [] }` from extraction means no questions were found and is not treated as an invalid ask payload
 - command-flow cancellation closes with a notification and does not send a message to the agent

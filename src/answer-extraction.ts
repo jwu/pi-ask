@@ -1,15 +1,13 @@
-import {
-	type Api,
-	type AssistantMessage,
-	type Context,
-	type Model,
-	modelsAreEqual,
-	type Tool,
-	type UserMessage,
+import type {
+	Api,
+	AssistantMessage,
+	Context,
+	Model,
+	Tool,
+	UserMessage,
 } from "@earendil-works/pi-ai";
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Value } from "typebox/value";
-import type { AskConfig } from "./config/schema.ts";
 import { AnswerExtractionParamsSchema } from "./schema.ts";
 import { collectValidationIssues } from "./state/normalize.ts";
 import type { AskParams } from "./types.ts";
@@ -48,59 +46,6 @@ interface ExtractionPromptOptions {
 	lastError: string;
 	lastResponse: string;
 	previousUserText?: string;
-}
-
-interface SelectedExtractionModel {
-	model: Model<Api>;
-	usedFallback: boolean;
-}
-
-export async function selectExtractionModel(
-	ctx: Pick<ExtensionContext, "model" | "modelRegistry" | "scopedModels">,
-	preferences: AskConfig["answer"]["extractionModels"]
-): Promise<SelectedExtractionModel | { error: string }> {
-	for (const preference of preferences) {
-		const model = ctx.modelRegistry.find(preference.provider, preference.id);
-		if (!(model && isModelInScope(model, ctx.scopedModels))) {
-			continue;
-		}
-		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
-		if (auth.ok) {
-			return { model, usedFallback: false };
-		}
-	}
-
-	if (!ctx.model) {
-		return {
-			error:
-				"No available extraction model. Configure answer.extractionModels or select a chat model.",
-		};
-	}
-	if (!isModelInScope(ctx.model, ctx.scopedModels)) {
-		return {
-			error:
-				"No available extraction model in the current session model scope.",
-		};
-	}
-
-	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
-	if (!auth.ok) {
-		return {
-			error: `No auth for fallback chat model: ${ctx.model.provider}/${ctx.model.id}.`,
-		};
-	}
-
-	return { model: ctx.model, usedFallback: true };
-}
-
-function isModelInScope(
-	model: Model<Api>,
-	scopedModels: ExtensionContext["scopedModels"]
-): boolean {
-	return (
-		scopedModels.length === 0 ||
-		scopedModels.some((scoped) => modelsAreEqual(scoped.model, model))
-	);
 }
 
 export async function extractAskParams(options: {
@@ -180,7 +125,7 @@ async function runExtractionAttempt(options: {
 		if (response.stopReason === "aborted") {
 			throw new Error(
 				timedOut
-					? "Question extraction timed out. Try again or configure a faster extraction model."
+					? "Question extraction timed out. Try again or switch to a faster chat model."
 					: "Question extraction cancelled."
 			);
 		}

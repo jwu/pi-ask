@@ -15,11 +15,6 @@ const DEFAULT_EXTRACTION_TIMEOUT_MS = 30_000;
 
 export const DEFAULT_ASK_CONFIG: AskConfig = {
 	answer: {
-		extractionModels: [
-			{ provider: "openai-codex", id: "gpt-5.4-mini" },
-			{ provider: "github-copilot", id: "gpt-5.4-mini" },
-			{ provider: "anthropic", id: "claude-haiku-4-5" },
-		],
 		extractionRetries: DEFAULT_EXTRACTION_RETRIES,
 		extractionTimeoutMs: DEFAULT_EXTRACTION_TIMEOUT_MS,
 	},
@@ -42,9 +37,6 @@ export function normalizeAskConfig(
 ): AskConfig {
 	return {
 		answer: {
-			extractionModels:
-				config?.answer?.extractionModels?.filter(isValidModelPreference) ??
-				DEFAULT_ASK_CONFIG.answer.extractionModels,
 			extractionRetries: clampInteger(
 				config?.answer?.extractionRetries,
 				0,
@@ -88,7 +80,6 @@ export function toAskConfigFileV6(config: AskConfig): AskConfigFileV6 {
 	return {
 		schemaVersion: 6,
 		answer: {
-			extractionModels: normalized.answer.extractionModels,
 			extractionRetries: normalized.answer.extractionRetries,
 			extractionTimeoutMs: normalized.answer.extractionTimeoutMs,
 		},
@@ -182,19 +173,6 @@ function isValidNotificationChannel(
 		(value as { type?: unknown }).type === "command" &&
 		typeof (value as { command?: unknown }).command === "string" &&
 		(value as { command: string }).command.trim().length > 0
-	);
-}
-
-function isValidModelPreference(
-	value: unknown
-): value is { id: string; provider: string } {
-	return (
-		!!value &&
-		typeof value === "object" &&
-		typeof (value as { id?: unknown }).id === "string" &&
-		(value as { id: string }).id.trim().length > 0 &&
-		typeof (value as { provider?: unknown }).provider === "string" &&
-		(value as { provider: string }).provider.trim().length > 0
 	);
 }
 

@@ -143,8 +143,14 @@ const AskConfigKeymapsSchema = Type.Intersect([
 ]);
 
 export const AskConfigFileV6Schema = Type.Intersect([
-	Type.Omit(AskConfigFileV5Schema, ["schemaVersion"]),
+	Type.Omit(AskConfigFileV5Schema, ["answer", "schemaVersion"]),
 	Type.Object({
+		answer: Type.Optional(
+			Type.Object({
+				extractionRetries: Type.Optional(Type.Number()),
+				extractionTimeoutMs: Type.Optional(Type.Number()),
+			})
+		),
 		keymaps: Type.Optional(AskConfigKeymapsSchema),
 		schemaVersion: Type.Literal(6),
 	}),
@@ -232,11 +238,6 @@ export type AskConfigFileV1 = Omit<
 	"answer" | "schemaVersion"
 > & { schemaVersion: 1 };
 
-export interface AskAnswerModelPreference {
-	id: string;
-	provider: string;
-}
-
 export type AskNotificationChannel =
 	| "bell"
 	| "osc9"
@@ -287,7 +288,6 @@ export interface AskConfigKeymaps {
 
 export interface AskConfig {
 	answer: {
-		extractionModels: AskAnswerModelPreference[];
 		extractionRetries: number;
 		extractionTimeoutMs: number;
 	};

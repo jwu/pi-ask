@@ -191,6 +191,29 @@ test("config store loads migrated config without rewriting", async () => {
 	await rm(dirname(path), { force: true, recursive: true });
 });
 
+test("config store ignores retired extraction models and preserves other answer settings", async (t) => {
+	const path = await makeTempPath("pi-ask-config-extraction-models-");
+	t.after(() => rm(dirname(path), { force: true, recursive: true }));
+	const answer = { extractionRetries: 2, extractionTimeoutMs: 12_000 };
+	const content = JSON.stringify({
+		...expectedConfigFile(),
+		answer: {
+			...answer,
+			extractionModels: [{ provider: "old-provider", id: "old-model" }],
+		},
+	});
+	await writeFile(path, content);
+	const store = new AskConfigStore(path);
+
+	const result = await store.ensureLoaded();
+	assert.equal(result.notice, undefined);
+	assert.deepEqual(result.config.answer, answer);
+	assert.equal(await readFile(path, "utf-8"), content);
+
+	await store.save(result.config);
+	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")).answer, answer);
+});
+
 test("config store reads legacy root config without copying it", async () => {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), "pi-ask-config-legacy-"))

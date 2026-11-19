@@ -104,7 +104,7 @@ export function renderAskToolCall(args: unknown, theme: ToolTheme) {
 				})
 				.join(" · ")
 		: "";
-	const title = theme.fg("toolTitle", theme.bold("Ask"));
+	const title = theme.fg("toolTitle", theme.bold("ask_user"));
 	const text = labels ? `${title} ${theme.fg("accent", labels)}` : title;
 	return new Text(text, 0, 0);
 }

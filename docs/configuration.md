@@ -32,11 +32,6 @@ Unsupported future versions or invalid files are left unchanged and defaults are
 {
   "schemaVersion": 6,
   "answer": {
-    "extractionModels": [
-      { "provider": "openai-codex", "id": "<model-id>" },
-      { "provider": "github-copilot", "id": "<model-id>" },
-      { "provider": "anthropic", "id": "<model-id>" }
-    ],
     "extractionTimeoutMs": 30000,
     "extractionRetries": 1
   },
@@ -97,19 +92,7 @@ Unsupported future versions or invalid files are left unchanged and defaults are
 
 ## Answer extraction
 
-These settings affect only the `/answer` command. Normal `ask_user` tool calls do not use an extraction model.
-
-### `answer.extractionModels`
-
-- type: array of `{ "provider": string, "id": string }`
-- default: lightweight OpenAI Codex, GitHub Copilot, and Anthropic models
-- effect: `/answer` tries configured models in order and uses the first model with available auth that is inside the current session model scope; an empty scope allows all available models
-- fallback: if no configured model is usable, `/answer` tries the current chat model after validating its auth and scope
-- auth check: use Pi's auth preflight before changing this list:
-
-```bash
-pi auth check --provider openai-codex --model gpt-5.4-mini
-```
+`/answer` extracts questions using the current chat model. Existing config files may still contain `answer.extractionModels`, which is ignored. The timeout and retry settings apply only to `/answer`.
 
 ### `answer.extractionTimeoutMs`
 
@@ -353,13 +336,10 @@ Invalid keymaps include:
 
 ```json
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "answer": {
     "extractionRetries": 1,
-    "extractionTimeoutMs": 30000,
-    "extractionModels": [
-      { "provider": "openai-codex", "id": "<model-id>" }
-    ]
+    "extractionTimeoutMs": 30000
   },
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": true,
@@ -427,7 +407,6 @@ When editing this config for a user:
 
 - preserve unrelated fields
 - keep `schemaVersion` at `6`
-- preserve `answer.extractionModels` as explicit provider/id pairs
 - keep `answer.extractionRetries` between `0` and `3`
 - do not assign fixed numeric shortcuts (`1` through `9`) to configurable actions
 - do not create duplicate bindings within a context or between `global` and `main`, `editor`, or `noteEditor`

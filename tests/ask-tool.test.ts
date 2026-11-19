@@ -206,7 +206,7 @@ test("ask tool reports ambiguous labels and duplicate questions before opening U
 	assert.match(result.content[0].text, RECEIVED_PAYLOAD_RE);
 });
 
-test("ask tool transcript shows an Ask title and accent-colored headers", () => {
+test("ask tool transcript shows the tool name and accent-colored headers", () => {
 	const { tool } = registerMockTool();
 	const theme = {
 		bold: (text: string) => `<bold>${text}</bold>`,
@@ -225,11 +225,11 @@ test("ask tool transcript shows an Ask title and accent-colored headers", () => 
 	).text;
 	assert.equal(
 		callText,
-		"<toolTitle><bold>Ask</bold></toolTitle> <accent>发布策略 · 验收条件 · 异常处置</accent>"
+		"<toolTitle><bold>ask_user</bold></toolTitle> <accent>发布策略 · 验收条件 · 异常处置</accent>"
 	);
 	assert.equal(
 		tool.renderCall({}, theme).text,
-		"<toolTitle><bold>Ask</bold></toolTitle>"
+		"<toolTitle><bold>ask_user</bold></toolTitle>"
 	);
 });
 
