@@ -1,5 +1,12 @@
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import {
+	type ExtensionContext,
+	getMarkdownTheme,
+} from "@earendil-works/pi-coding-agent";
+import {
+	Markdown,
+	truncateToWidth,
+	visibleWidth,
+} from "@earendil-works/pi-tui";
 import type { AskConfig } from "../config/schema.ts";
 import {
 	type FooterKeymapContext,
@@ -236,27 +243,33 @@ function renderPersistentBackground(
 	return `${prefix} ${reopenedText} ${suffix}`;
 }
 
-export function renderBox(
+function renderBox(
 	content: Array<{ text: string; color: ThemeColor }>,
 	width: number,
-	theme: Theme
+	theme: Theme,
+	markdown?: string
 ): string[] {
 	const boxWidth = Math.max(UI_DIMENSIONS.boxMinWidth, width);
 	const innerWidth = Math.max(4, boxWidth - 2);
 	const top = theme.fg("accent", `┌${"─".repeat(innerWidth)}┐`);
 	const bottom = theme.fg("accent", `└${"─".repeat(innerWidth)}┘`);
-	const lines = [top];
-	for (const item of content) {
-		for (const rawLine of wrapText(item.text, innerWidth)) {
-			const line = theme.fg(item.color, rawLine);
-			const padding = " ".repeat(Math.max(0, innerWidth - visibleWidth(line)));
-			lines.push(
-				theme.fg("accent", "│") + line + padding + theme.fg("accent", "│")
-			);
-		}
+	const body = content.flatMap(({ text, color }) =>
+		wrapText(text, innerWidth).map((line) => theme.fg(color, line))
+	);
+	if (markdown) {
+		body.push(
+			...new Markdown(markdown, 0, 0, getMarkdownTheme()).render(innerWidth)
+		);
 	}
-	lines.push(bottom);
-	return lines;
+	const border = theme.fg("accent", "│");
+	return [
+		top,
+		...body.map(
+			(line) =>
+				`${border}${padToVisibleWidth(truncateToWidth(line, innerWidth), innerWidth)}${border}`
+		),
+		bottom,
+	];
 }
 
 export function renderPreviewPaneContent(
@@ -282,15 +295,10 @@ export function renderPreviewPaneContent(
 	}
 	content.push({ text: "", color: "dim" });
 
-	for (const previewLine of (selectedOption.preview ?? NO_PREVIEW_TEXT).split(
-		"\n"
-	)) {
-		content.push({
-			text: previewLine,
-			color: selectedOption.preview ? "text" : "dim",
-		});
+	if (!selectedOption.preview) {
+		content.push({ text: NO_PREVIEW_TEXT, color: "dim" });
 	}
-	return renderBox(content, width, theme);
+	return renderBox(content, width, theme, selectedOption.preview);
 }
 
 export function mergeColumns(

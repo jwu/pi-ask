@@ -1,7 +1,68 @@
 import { StringEnum } from "@earendil-works/pi-ai";
+import type { Static } from "typebox";
 import { Type } from "typebox";
 
-export const AskOptionSchema = Type.Object({
+const AskToolOptionSchema = Type.Object(
+	{
+		label: Type.String({
+			maxLength: 60,
+			pattern: "\\S",
+			description: "Short visible option label (1-5 words)",
+		}),
+		description: Type.String({
+			pattern: "\\S",
+			description: "What the choice means and its trade-offs",
+		}),
+		preview: Type.Optional(
+			Type.String({
+				description: "Markdown preview for a single-select option",
+			})
+		),
+		recommended: Type.Optional(
+			Type.Boolean({
+				description:
+					"Mark a grounded recommendation and explain it in the description",
+			})
+		),
+	},
+	{ additionalProperties: false }
+);
+
+export const AskToolParamsSchema = Type.Object(
+	{
+		questions: Type.Array(
+			Type.Object(
+				{
+					header: Type.String({
+						maxLength: 16,
+						pattern: "\\S",
+						description: "Short tab label",
+					}),
+					question: Type.String({
+						pattern: "\\S",
+						description: "Ask about one concrete decision",
+					}),
+					options: Type.Array(AskToolOptionSchema, {
+						minItems: 2,
+						maxItems: 4,
+					}),
+					multiSelect: Type.Optional(
+						Type.Boolean({
+							description: "Allow more than one answer; defaults to false",
+						})
+					),
+				},
+				{ additionalProperties: false }
+			),
+			{ minItems: 1, maxItems: 4 }
+		),
+	},
+	{ additionalProperties: false }
+);
+
+export type AskToolParams = Static<typeof AskToolParamsSchema>;
+
+const AskOptionSchema = Type.Object({
 	value: Type.String({
 		description:
 			"Required machine-readable value returned for this option in the result",
@@ -28,8 +89,7 @@ export const AskOptionSchema = Type.Object({
 	),
 });
 
-// id/prompt/options stay optional at the schema layer so a malformed payload reaches
-// the tool and gets a structured issue with the received args; see docs/contract.md.
+// Internal question format shared by session storage and answer extraction.
 export const AskQuestionSchema = Type.Object({
 	id: Type.Optional(
 		Type.String({

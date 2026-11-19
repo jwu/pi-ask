@@ -44,9 +44,9 @@ test("submit screen renders the compact action labels without extra prompt copy"
 		UI_DIMENSIONS.submitWideMinWidth + 16
 	);
 
-	assert.equal(lines[0], "❯ 1. Submit      Review answers");
-	assert.equal(lines[1], "  2. Elaborate  ");
-	assert.equal(lines[2], "  3. Cancel      Single");
+	assert.equal(lines[0], "❯ 1. Submit       Review answers");
+	assert.equal(lines[1], "  2. 进一步说明  ");
+	assert.equal(lines[2], "  3. Cancel       Single");
 	assert(!lines.join("\n").includes("Submit answers?"));
 	assert(!lines.join("\n").includes("Submit answers"));
 });
@@ -72,10 +72,10 @@ test("submit screen keeps review and actions grouped side by side on wide screen
 	);
 
 	assert.deepEqual(lines, [
-		"❯ 1. Submit      Review answers",
-		"  2. Elaborate  ",
-		"  3. Cancel      Color",
-		"                   → unanswered",
+		"❯ 1. Submit       Review answers",
+		"  2. 进一步说明  ",
+		"  3. Cancel       Color",
+		"                    → unanswered",
 	]);
 });
 
@@ -106,7 +106,7 @@ test("submit screen stacks review above actions on narrow screens", () => {
 		"   → unanswered",
 		"",
 		"❯ 1. Submit",
-		"  2. Elaborate",
+		"  2. 进一步说明",
 		"  3. Cancel",
 	]);
 });
@@ -323,8 +323,8 @@ test("submit action column keeps all three actions on consecutive rows at the wi
 		UI_DIMENSIONS.submitWideMinWidth
 	);
 
-	assert.equal(lines[0], "❯ 1. Submit      Review answers");
-	assert.equal(lines[1], "  2. Elaborate  ");
-	assert.equal(lines[2], "  3. Cancel      Color");
-	assert.equal(lines[3], "                   → unanswered");
+	assert.equal(lines[0], "❯ 1. Submit       Review answers");
+	assert.equal(lines[1], "  2. 进一步说明  ");
+	assert.equal(lines[2], "  3. Cancel       Color");
+	assert.equal(lines[3], "                    → unanswered");
 });

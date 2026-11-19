@@ -8,17 +8,13 @@ This document defines the stable external behavior. It does not explain internal
 
 ```ts
 {
-  title?: string;
   questions: Array<{
-    id: string;
-    label?: string;
-    prompt: string;
-    type?: "single" | "multi" | "preview";
-    required?: boolean;
+    header: string;
+    question: string;
+    multiSelect?: boolean;
     options: Array<{
-      value: string;
       label: string;
-      description?: string;
+      description: string;
       preview?: string;
       recommended?: boolean;
     }>;
@@ -26,24 +22,12 @@ This document defines the stable external behavior. It does not explain internal
 }
 ```
 
-## Input rules
-
-- `id`, `prompt`, and `options` are required in a complete question but optional in the public schema; presence is checked at runtime so a degraded payload still reaches the tool
-- at least one question is required
-- every question must have non-empty trimmed `id` and `prompt`
-- every question must have at least one option
-- question ids must be unique within one tool call
-- option `value`s must be unique within a question
-- blank optional `title`, question `label`, option `description`, and option `preview` fields are treated as omitted
-- question `label` falls back to `Q1`, `Q2`, ...
-- option `label` is required in the public schema; before schema validation, a missing or blank string label is derived from a non-empty `value` by replacing hyphens and underscores with spaces and capitalizing the first character
-- `recommended` is optional presentation metadata; zero, one, or multiple options may set it to `true`
-- recommended options render warning-colored `(recommended)` followed by muted ` | <description>`, or only `(recommended)` when no description exists, but are not preselected
-- `type` defaults to `single`
-- `required` defaults to `false`
-- `required` is metadata only; it never blocks submission
-- preview questions require preview text for every declared option; option descriptions do not satisfy this requirement, and invalid preview payloads report a fix hint to add preview text or switch to `type: "single"`
-- all questions get an internal `Type your own` option
+- A call accepts 1–4 questions and 2–4 options per question. Headers are limited to 16 characters and option labels to 60.
+- Question text must be unique within a call, and option labels must be unique within each question after trimming. Custom answer labels such as `Other`, `Type something.`, and `Type your own` are reserved.
+- `multiSelect` defaults to `false`. A single-select question displays a Markdown preview pane when any option has non-empty `preview` content. Multi-select questions display the checkbox list and ignore preview text.
+- `recommended: true` displays a recommendation marker without selecting the option.
+- Every question offers `Type your own`. Submission can leave questions unanswered.
+- The tool generates question IDs (`q1`, `q2`, …) and option values (`option_1`, `option_2`, …) from their order, scoped to the form. They appear in results and remote events.
 
 ## Output
 
@@ -203,7 +187,7 @@ This document defines the stable external behavior. It does not explain internal
 - once prior answers narrow the branch, agents should bundle the next 2-3 related unresolved questions into one follow-up ask when possible, instead of using a long sequence of single-question asks
 - `elaboration` is only present when `mode === "elaborate"`
 - elaborate `content` text and transcript rendering describe each note directly using the full question prompt and option label, and include the current committed answer text when available, instead of a generic elaboration banner
-- when the user selects `Elaborate` without adding notes, elaborate `content` text and transcript rendering still include the committed answer text so the agent can elaborate on that answer directly
+- when the user selects `进一步说明` (Elaborate) without adding notes, elaborate `content` text and transcript rendering still include the committed answer text so the agent can elaborate on that answer directly
 
 ## Supported UX
 
@@ -218,7 +202,7 @@ This document defines the stable external behavior. It does not explain internal
 - number-key quick selection
 - submit/elaborate/cancel review tab
 - on the review tab, `Submit` and `Cancel` preview notes only for answered questions
-- on the review tab, `Elaborate` preview expands to all question notes and all option notes, including notes on unselected options
+- on the review tab, `进一步说明` (Elaborate) preview expands to all question notes and all option notes, including notes on unselected options
 - transcript-friendly call and result rendering
 - `/answer` command to convert the latest completed assistant message into an `AskParams` form through a synthetic `ask_user` tool call and open the ask UI
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
@@ -246,7 +230,7 @@ Main flow:
 - `main.confirm`, `main.cancel`, and `main.toggle` confirm, cancel, or toggle; defaults: `Enter`, `Esc`, `Space`
 - `main.changeQuestionType` changes the active question type (non-preview: `single <-> multi`; preview: `preview <-> multi`); default: `t`; destructive `multi -> single` changes require pressing the type hotkey again, with no timeout, and the pending confirmation clears on other navigation/actions
 - `main.optionNote` and `main.questionNote` open option/question notes; defaults: `n`, `Shift+N`
-- `1..9` is fixed and selects or toggles the matching option; on the review tab, `1`, `2`, and `3` trigger `Submit`, `Elaborate`, and `Cancel`
+- `1..9` is fixed and selects or toggles the matching option; on the review tab, `1`, `2`, and `3` trigger `Submit`, `进一步说明` (Elaborate), and `Cancel`
 - when `Double-press review shortcuts` is enabled, review-tab `1`, `2`, and `3` require the same key twice without a timeout, and the review screen shows an inline hint for the pending action
 
 Editing flow:
@@ -279,7 +263,7 @@ The rich ask flow uses `ctx.ui.custom()` and opens only in TUI mode. In print, J
 
 The ask flow can be collapsed to a bordered `Ask hidden · alt+a to expand` line with the global `toggleVisibility` binding (`alt+a` by default). The collapsed flow keeps its state, keeps rendering in the editor area so the transcript stays scrollable with the mouse, and ignores input other than the toggle binding until it is restored. While collapsed the editor is inert, so its text never suppresses the toggle binding that restores the panel.
 
-The public tool schema requires question `id` and `prompt` plus option `value` and `label`, and it restricts question `type` to `single`, `multi`, or `preview`, so malformed structural fields fail before execution. The tool still validates trimmed text, uniqueness, option counts, and preview requirements during execution and returns structured issues for those failures. Result rendering falls back to Pi's raw tool-error text when schema validation prevents execution.
+Pi validates the public input shape before execution. The tool checks for duplicate questions, duplicate option labels, and reserved labels, and returns structured issues for these failures. Result rendering uses Pi's tool-error text when schema validation prevents execution.
 
 The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, resetting config to defaults, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks when the change is saved or otherwise applied in memory. Load-time migrations and invalid config handling do not rewrite, rename, or back up the config file; invalid files load defaults for the session and show a notice. `Present single-select as multi-select` is applied when an ask flow is created and does not rewrite question semantics for an already-open flow; use `main.changeQuestionType` for live per-question changes.
 
@@ -304,7 +288,7 @@ See [`remote-events.md`](remote-events.md) for payload shapes, examples, and a l
 
 ## Slash command replay/extraction
 
-- valid `ask_user` payloads are persisted as branch custom entries before the UI opens, so `/ask:replay` can reopen them after cancel, `/resume`, or `/tree`
+- valid `ask_user` payloads are persisted as version 2 branch custom entries before the UI opens, so `/ask:replay` can reopen them after cancel, `/resume`, or `/tree`. Version 1 forms must be asked again using the new input format
 - `/answer` scans the current branch for the latest assistant message; if that message did not finish with `stop`, extraction is refused
 - `/answer` sends the preceding user message as context with the latest assistant text and asks the extractor for one synthetic `ask_user` tool call
 - missing or invalid tool calls are retried according to `answer.extractionRetries`; raw or fenced JSON text remains supported as a last-resort fallback
@@ -324,12 +308,6 @@ See [`remote-events.md`](remote-events.md) for payload shapes, examples, and a l
 - recovered flows emit remote lifecycle events with source `ask:resume`
 
 The fallback message includes normalized pending questions and options so the caller can re-ask them manually. `details.questions` still contains normalized question metadata, while `details.answers` stays empty until a user responds.
-
-## Skill alignment (advisory)
-
-The auto-bundled skill profile at `skills/ask-user/SKILL.md` defines agent-side decision-gate guidance for when to call `ask_user`. It is enabled by default when the package is installed, but can be disabled via `pi config`.
-
-It is advisory only. If there is any conflict, contract + tests win.
 
 ## Source of truth
 

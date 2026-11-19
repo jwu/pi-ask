@@ -5,8 +5,6 @@ import { cycleCurrentQuestionType } from "../src/state/question-type.ts";
 
 const DUPLICATE_QUESTION_ID_RE = /duplicate question id "scope"/;
 const DUPLICATE_OPTION_VALUE_RE = /duplicate option value "small"/;
-const PREVIEW_REQUIRED_RE =
-	/preview questions require preview text for every option/;
 const FREEFORM_UNSUPPORTED_RE =
 	/freeform options are only supported for \/answer forms/;
 const FREEFORM_MIXED_RE = /freeform options must be the only option/;
@@ -205,23 +203,6 @@ test("createInitialState rejects duplicate option values within one question", (
 				],
 			}),
 		DUPLICATE_OPTION_VALUE_RE
-	);
-});
-
-test("preview questions require preview text for every option", () => {
-	assert.throws(
-		() =>
-			createInitialState({
-				questions: [
-					{
-						id: "layout",
-						prompt: "Pick layout",
-						type: "preview",
-						options: [{ value: "compact", label: "Compact" }],
-					},
-				],
-			}),
-		PREVIEW_REQUIRED_RE
 	);
 });
 

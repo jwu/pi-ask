@@ -31,5 +31,5 @@ test("review shortcut hint reflects pending confirmation state", () => {
 		getReviewShortcutHint(),
 		"Press 1, 2, or 3 twice to confirm a review action."
 	);
-	assert.equal(getReviewShortcutHint(1), "Press 2 again to Elaborate.");
+	assert.equal(getReviewShortcutHint(1), "Press 2 again to 进一步说明.");
 });

@@ -50,47 +50,6 @@ export function collectValidationIssues(
 	return collector.issues;
 }
 
-export function prepareAskParams(input: unknown): unknown {
-	if (!(isRecord(input) && Array.isArray(input.questions))) {
-		return input;
-	}
-	return {
-		...input,
-		questions: input.questions.map((question) => {
-			if (!(isRecord(question) && Array.isArray(question.options))) {
-				return question;
-			}
-			return {
-				...question,
-				options: question.options.map(prepareOption),
-			};
-		}),
-	};
-}
-
-function prepareOption(input: unknown): unknown {
-	if (!isRecord(input)) {
-		return input;
-	}
-	if (
-		input.label !== undefined &&
-		!(typeof input.label === "string" && !input.label.trim())
-	) {
-		return input;
-	}
-	if (typeof input.value !== "string") {
-		return input;
-	}
-	const words = input.value.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
-	if (!words) {
-		return input;
-	}
-	return {
-		...input,
-		label: words.charAt(0).toUpperCase() + words.slice(1),
-	};
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -170,7 +129,6 @@ function validateQuestion(
 		typeof question.id === "string" ? question.id.trim() : undefined;
 	const questionPrompt =
 		typeof question.prompt === "string" ? question.prompt.trim() : undefined;
-	const questionType = normalizeQuestionType(question.type);
 
 	validateQuestionType(
 		question.type,
@@ -219,7 +177,6 @@ function validateQuestion(
 			optionIndex,
 			optionValues,
 			questionNumber,
-			questionType,
 			collector,
 			`${questionPath}.options[${optionIndex}]`
 		);
@@ -259,7 +216,6 @@ function validateOption(
 	optionIndex: number,
 	optionValues: Set<string>,
 	questionNumber: number,
-	questionType: AskQuestion["type"],
 	collector: IssueCollector,
 	optionPath: string
 ) {
@@ -276,8 +232,6 @@ function validateOption(
 		typeof option.value === "string" ? option.value.trim() : undefined;
 	const optionLabel =
 		typeof option.label === "string" ? option.label.trim() : undefined;
-	const optionPreview =
-		typeof option.preview === "string" ? option.preview.trim() : undefined;
 
 	assertRequired(
 		optionValue,
@@ -298,14 +252,6 @@ function validateOption(
 		`${optionPath}.label`,
 		`${prefix}: label is required`
 	);
-	if (questionType === "preview") {
-		assertRequired(
-			optionPreview,
-			collector,
-			`${optionPath}.preview`,
-			`${prefix}: preview questions require preview text for every option; add preview text or use type "single" instead`
-		);
-	}
 }
 
 function normalizeQuestionType(

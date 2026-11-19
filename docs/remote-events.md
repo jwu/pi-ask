@@ -160,7 +160,7 @@ export default function smoke(pi: any) {
         version: 1,
         requestId: `smoke-${Date.now()}`,
         flowId: event.flowId,
-        response: { kind: "answer", answers: { [q.id]: { values: ["tool"] } } },
+        response: { kind: "answer", answers: { [q.id]: { values: [q.options[0].value] } } },
       });
     }, 2500);
   });
@@ -174,14 +174,13 @@ pi \
   --no-themes \
   --no-context-files \
   -e "$PWD/src/index.ts" \
-  -e /tmp/pi-ask-smoke.ts \
-  --skill "$PWD/skills/ask-user"
+  -e /tmp/pi-ask-smoke.ts
 ```
 
 Then ask Pi:
 
 ```txt
-Use ask_user. Title: pi-ask smoke. Ask one single-select question id tool with options tool and nope.
+Use ask_user to ask one single-select question with the options Tool and Nope.
 ```
 
-The ask UI should open and auto-submit `tool` after about 2.5 seconds.
+The ask UI should open and auto-submit `Tool` after about 2.5 seconds.

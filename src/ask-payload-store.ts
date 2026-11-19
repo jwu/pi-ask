@@ -8,7 +8,7 @@ import { AskParamsSchema } from "./schema.ts";
 import type { AskParams } from "./types.ts";
 
 export const ASK_PAYLOAD_ENTRY_TYPE = "ask:payload";
-export const ASK_PAYLOAD_ENTRY_VERSION = 1;
+export const ASK_PAYLOAD_ENTRY_VERSION = 2;
 
 export type AskPayloadSource = "answer-extraction" | "tool";
 

@@ -5,28 +5,35 @@ import { renderResultText } from "./result.ts";
 import { createInitialState } from "./state/create.ts";
 import { collectValidationIssues } from "./state/normalize.ts";
 import { summarizeResult, toAskResult } from "./state/result.ts";
-import type {
-	AskParams,
-	AskQuestionInput,
-	AskResult,
-	AskValidationIssue,
-} from "./types.ts";
+import type { AskParams, AskResult, AskValidationIssue } from "./types.ts";
 
-export const ASK_TOOL_DESCRIPTION =
-	"Interactive clarification tool for cases where the next step depends on user preferences, missing requirements, or choosing between multiple valid directions. Ask a short structured interview, collect normalized answers, and continue using those answers explicitly instead of guessing. Supports single-select, multi-select, and preview-pane questions. Always include a stable `id` and non-empty `prompt` for every question, plus a machine-readable `value` and visible `label` for every option. Use `preview` only when every option includes `preview` text; descriptions alone are not enough.";
+// Adapted from rpiv-ask-user-question. See the notice in LICENSE.
+export const ASK_TOOL_DESCRIPTION = `Ask the user one or more structured questions during execution. Use when you need to:
+1. Gather user preferences or requirements
+2. Clarify ambiguous instructions
+3. Get decisions on implementation choices as you work
+4. Offer choices to the user about what direction to take
+
+Usage notes:
+- Each question offers 2-4 distinct choices. Users can type a custom answer via the automatically appended "Type your own" row or press Esc to abandon the questionnaire. Do not author a custom-answer option yourself.
+- Use multiSelect: true when multiple answers are valid. Custom text can accompany selected choices in a multi-select answer.
+- If you recommend a specific option, put it first, set recommended: true, and explain the reason in its description.
+
+Preview feature:
+Use the optional preview field on options when presenting concrete artifacts that users need to visually compare:
+- ASCII mockups of UI layouts or components
+- Code snippets showing different implementations
+- Diagram variations
+- Configuration examples
+
+Preview content renders as Markdown. If any option on a single-select question has preview content, the terminal displays it beside or below the option list. Use descriptions for simple preferences. Previews are only supported for single-select questions.`;
 
 export const ASK_TOOL_PROMPT_GUIDELINES = [
-	"Use `ask_user` before making preference-sensitive decisions about scope, tone, UX, naming, architecture, docs, or implementation direction.",
-	"When multiple valid directions exist, call `ask_user` with 1-3 concise questions instead of committing to one path on your own.",
-	"When calling `ask_user`, prefer one focused decision per question. Use short labels. Provide clear, distinct options. Do not add filler options.",
-	"When calling `ask_user`, always include a stable `id` and non-empty `prompt` for every question.",
-	"When calling `ask_user`, always include a non-empty machine-readable `value` and visible `label` for every option.",
-	"When calling `ask_user`, mark grounded preferences with `recommended: true` and use the option `description` to state the reason.",
-	"When calling `ask_user`, choose question `type` from the question semantics: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail.",
-	'When calling `ask_user`, use `type: "preview"` only when every option includes non-empty `preview` text. Option descriptions do not satisfy this requirement.',
-	"After an `ask_user` elaboration or follow-up note, prefer another structured `ask_user` follow-up if a choice is still needed instead of switching to plain-text multiple choice in chat.",
-	"When prior `ask_user` answers narrow the branch, bundle the next 2-3 related unresolved decisions into one follow-up `ask_user` call when possible.",
-	"Use one-at-a-time `ask_user` follow-up calls only when the next question materially depends on the previous answer.",
+	"Use ask_user whenever the user's request is underspecified and you cannot proceed without concrete decisions. You can ask up to 4 questions per invocation.",
+	"Each question must have 2-4 options. Give each one a concise label and a description explaining its meaning or trade-offs. The tool automatically offers a custom answer.",
+	"Set multiSelect: true when multiple answers are valid. For single-select questions, use an option's preview for concrete Markdown examples. Mark a grounded recommendation with recommended: true and explain it in the description.",
+	"Group independent clarifying questions into one invocation. Ask sequentially when a later question depends on the previous answer.",
+	"After the user picks 进一步说明 (Elaborate), answer their notes first. Re-ask only the affected questions if a choice is still needed.",
 ] as const;
 
 interface ValidateParamsOptions {
@@ -52,14 +59,14 @@ export function validateParams(
 }
 
 export function invalidPayloadResponse(
-	params: AskParams,
+	params: unknown,
 	issues: AskValidationIssue[]
 ) {
 	return {
 		content: [
 			{ type: "text" as const, text: formatValidationError(params, issues) },
 		],
-		details: errorResultDetails(params, issues),
+		details: errorResultDetails(issues),
 	};
 }
 
@@ -87,17 +94,19 @@ export function successfulResponse(result: AskResult) {
 type ToolTheme = ExtensionContext["ui"]["theme"];
 
 export function renderAskToolCall(args: unknown, theme: ToolTheme) {
-	const params = args as AskParams;
-	const labels = Array.isArray(params.questions)
+	const params = args as { questions?: Array<{ header?: string }> } | undefined;
+	const labels = Array.isArray(params?.questions)
 		? params.questions
-				.map(
-					(question: AskQuestionInput, index) =>
-						question.label?.trim() || `Q${index + 1}`
-				)
+				.map((question, index) => {
+					const header = question?.header;
+					return (
+						(typeof header === "string" && header.trim()) || `Q${index + 1}`
+					);
+				})
 				.join(", ")
 		: "";
 	let text = theme.fg("toolTitle", theme.bold("ask_user "));
-	text += theme.fg("muted", `${params.questions?.length ?? 0} question(s)`);
+	text += theme.fg("muted", `${params?.questions?.length ?? 0} question(s)`);
 	if (labels) {
 		text += theme.fg(
 			"dim",
@@ -128,12 +137,8 @@ export function renderAskToolResult(
 	);
 }
 
-function errorResultDetails(
-	params: AskParams,
-	issues: AskValidationIssue[]
-): AskResult {
+function errorResultDetails(issues: AskValidationIssue[]): AskResult {
 	return {
-		title: params.title,
 		cancelled: true,
 		mode: "submit",
 		questions: [],
@@ -149,26 +154,19 @@ function errorResultDetails(
 // actually received lets it self-correct instead of retrying the same payload.
 const RECEIVED_PAYLOAD_MAX_CHARS = 800;
 
-function formatValidationError(
-	params: AskParams,
-	issues: AskValidationIssue[]
-) {
+function formatValidationError(params: unknown, issues: AskValidationIssue[]) {
 	const lines = [
 		"Invalid ask_user payload:",
 		...issues.map((issue) => `- ${issue.path}: ${issue.message}`),
 	];
-	for (const extra of [
-		formatReceivedPayload(params),
-		malformedPayloadHint(params),
-	]) {
-		if (extra) {
-			lines.push("", extra);
-		}
+	const payload = formatReceivedPayload(params);
+	if (payload) {
+		lines.push("", payload);
 	}
 	return lines.join("\n");
 }
 
-function formatReceivedPayload(params: AskParams): string | undefined {
+function formatReceivedPayload(params: unknown): string | undefined {
 	let text: string;
 	try {
 		text = JSON.stringify(params, null, 2);
@@ -184,31 +182,6 @@ function formatReceivedPayload(params: AskParams): string | undefined {
 	return `Received payload:\n${text}`;
 }
 
-function malformedPayloadHint(params: AskParams): string | undefined {
-	const questions = Array.isArray(params?.questions)
-		? params.questions
-		: undefined;
-	if (!questions) {
-		return "The questions array is missing: send one question with id, prompt, and at least one option.";
-	}
-	if (questions.length === 0) {
-		return "The questions array was empty: send at least one question with id, prompt, and at least one option carrying value and label.";
-	}
-	if (questions.some(isEmptyRecord)) {
-		return "Some question objects arrived empty. Resend one complete question instead of retrying with an emptied payload; if it keeps arriving empty, ask the user in plain text.";
-	}
-	return;
-}
-
-function isEmptyRecord(value: unknown): boolean {
-	return (
-		!!value &&
-		typeof value === "object" &&
-		!Array.isArray(value) &&
-		Object.keys(value).length === 0
-	);
-}
-
 function formatNonInteractiveMessage(
 	state: ReturnType<typeof createInitialState>
 ): string {
@@ -220,7 +193,7 @@ function formatNonInteractiveMessage(
 	for (const [index, question] of state.questions.entries()) {
 		lines.push(`${index + 1}. ${question.label}: ${question.prompt}`);
 		for (const option of question.options) {
-			lines.push(`   - ${option.label} [${option.value}]`);
+			lines.push(`   - ${option.label}`);
 		}
 		lines.push("   - Type your own [custom]");
 	}

@@ -23,7 +23,8 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/notifications.ts` — best-effort ask notification payload rendering and channel execution
 - `src/clipboard.ts` — best-effort system clipboard text/image reads, temp-file image saves, and bracketed-paste wrapping for ask editors
 - `src/remote-ask.ts` — package-prefixed local event contract, active-flow registry, and explicit remote submission validation
-- `src/schema.ts` — TypeBox schema
+- `src/schema.ts` — public tool and internal form schemas
+- `src/ask-tool-params.ts` — validate public arguments, infer preview layout, and generate form-scoped IDs
 - `src/types.ts` — shared types
 
 ### State

@@ -23,13 +23,13 @@ function ctx(branch: unknown[]) {
 
 test("branch payload lookup returns the latest valid matching source", () => {
 	const older = {
-		version: 1,
+		version: 2,
 		source: "tool",
 		params,
 		timestamp: 1,
 	};
 	const newer = {
-		version: 1,
+		version: 2,
 		source: "tool",
 		params: { ...params, title: "Newer" },
 		timestamp: 2,
@@ -56,13 +56,13 @@ test("branch payload lookup allows freeform only for answer extraction payloads"
 	};
 
 	const answerPayload = {
-		version: 1,
+		version: 2,
 		source: "answer-extraction",
 		params: freeformParams,
 		timestamp: 1,
 	};
 	const toolPayload = {
-		version: 1,
+		version: 2,
 		source: "tool",
 		params: freeformParams,
 		timestamp: 2,
@@ -81,12 +81,13 @@ test("branch payload lookup allows freeform only for answer extraction payloads"
 	);
 });
 
-test("branch payload lookup ignores invalid stored payloads", () => {
+test("branch payload lookup ignores invalid stored payloads and version 1 forms", () => {
 	const result = findLatestPayloadInCurrentBranch(
 		ctx([
-			custom({ version: 1, source: "tool", params: { questions: [] } }),
-			custom({ version: 1, source: "tool", params: {} }),
-			custom({ version: 1, source: "answer-extraction", params }),
+			custom({ version: 1, source: "tool", params }),
+			custom({ version: 2, source: "tool", params: { questions: [] } }),
+			custom({ version: 2, source: "tool", params: {} }),
+			custom({ version: 2, source: "answer-extraction", params }),
 		]),
 		"tool"
 	);

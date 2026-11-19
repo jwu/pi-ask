@@ -4,10 +4,8 @@ import type {
 	ExtensionContext,
 	SessionEntry,
 } from "@earendil-works/pi-coding-agent";
-import { Value } from "typebox/value";
 import { findPayloadForSourceEntry } from "./ask-payload-store.ts";
-import { validateParams } from "./ask-tool-helpers.ts";
-import { AskParamsSchema } from "./schema.ts";
+import { parseAskToolParams } from "./ask-tool-params.ts";
 import type { AskParams } from "./types.ts";
 
 export const ASK_PENDING_DISMISSED_ENTRY_TYPE = "ask:pending-dismissed";
@@ -103,15 +101,7 @@ function resolvePendingAskParams(
 		return persistedPayload.params;
 	}
 
-	const argumentsFallback = toolCall.arguments;
-	if (
-		Value.Check(AskParamsSchema, argumentsFallback) &&
-		validateParams(argumentsFallback as AskParams).ok
-	) {
-		// Field presence is checked at runtime now; passing validation means it is complete.
-		return argumentsFallback as AskParams;
-	}
-	return;
+	return parseAskToolParams(toolCall.arguments).params;
 }
 
 function getDismissedToolCallId(entry: SessionEntry): string | undefined {

@@ -32,7 +32,7 @@ Rules:
 - Ignore generic conversational or clarification prompts such as "How can I help?", "Could you clarify?", or "Let me know what you need" unless they include concrete choices.
 - Extract a question when it has explicit choices or when the user should type their own answer.
 - Preserve question order and generate stable snake_case ids.
-- Use type "single" when one answer is expected, "multi" when multiple answers can coexist, and "preview" only when every option has useful preview text.
+- Use type "multi" when multiple answers can coexist. For single-select questions, use "preview" when at least one option has useful Markdown preview content and "single" otherwise.
 - Extract only choices explicitly offered by the assistant. Examples are not choices unless presented as selectable answers.
 - If there are concrete choices, use them as normal options and never invent filler options.
 - If there are no concrete choices and the user should type an answer, create exactly one option: {"value":"freeform","label":"Type answer","freeform":true}.

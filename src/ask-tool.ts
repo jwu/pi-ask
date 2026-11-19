@@ -13,11 +13,10 @@ import {
 	successfulResponse,
 	validateParams,
 } from "./ask-tool-helpers.ts";
+import { parseAskToolParams } from "./ask-tool-params.ts";
 import { getAskConfigStore } from "./config/store.ts";
 import type { RemoteAskRuntime } from "./remote-ask.ts";
-import { AskParamsSchema } from "./schema.ts";
-import { prepareAskParams } from "./state/normalize.ts";
-import type { AskParams } from "./types.ts";
+import { AskToolParamsSchema } from "./schema.ts";
 import { runAskFlow } from "./ui/controller.ts";
 
 export function registerAskTool(
@@ -29,20 +28,11 @@ export function registerAskTool(
 		label: "Ask User",
 		description: ASK_TOOL_DESCRIPTION,
 		promptSnippet:
-			"Clarify ambiguous or preference-sensitive decisions with a short interactive interview before proceeding",
+			"Ask the user up to 4 structured questions (2-4 options each) when requirements are ambiguous",
 		promptGuidelines: [...ASK_TOOL_PROMPT_GUIDELINES],
-		parameters: AskParamsSchema,
-		prepareArguments: (args) => prepareAskParams(args) as AskParams,
-		execute: (toolCallId, params, signal, onUpdate, ctx) =>
-			executeAskTool(
-				pi,
-				toolCallId,
-				params as AskParams,
-				signal,
-				onUpdate,
-				ctx,
-				remoteAsk
-			),
+		parameters: AskToolParamsSchema,
+		execute: (toolCallId, params, _signal, _onUpdate, ctx) =>
+			executeAskTool(pi, toolCallId, params, ctx, remoteAsk),
 		renderCall: renderAskToolCall,
 		renderResult: renderAskToolResult,
 	});
@@ -51,18 +41,21 @@ export function registerAskTool(
 async function executeAskTool(
 	pi: Pick<ExtensionAPI, "appendEntry">,
 	toolCallId: string,
-	params: AskParams,
-	_signal: AbortSignal | undefined,
-	_onUpdate: unknown,
+	input: unknown,
 	ctx: ExtensionContext,
 	remoteAsk?: RemoteAskRuntime
 ) {
+	const parsed = parseAskToolParams(input);
+	if (parsed.issues) {
+		return invalidPayloadResponse(input, parsed.issues);
+	}
+	const { params } = parsed;
 	const config = await getAskConfigStore().getConfig();
 	const validation = validateParams(params, {
 		presentSingleAsMulti: config.behaviour.presentSingleAsMulti,
 	});
 	if (!validation.ok) {
-		return invalidPayloadResponse(params, validation.issues);
+		return invalidPayloadResponse(input, validation.issues);
 	}
 	appendAskPayload(pi, {
 		params,

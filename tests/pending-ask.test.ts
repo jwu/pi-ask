@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { findLatestPayloadInCurrentBranch } from "../src/ask-payload-store.ts";
+import { parseAskToolParams } from "../src/ask-tool-params.ts";
 import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import { getAskConfigStore } from "../src/config/store.ts";
 import {
@@ -34,6 +35,20 @@ const params: AskParams = {
 	],
 };
 
+const toolParams = {
+	questions: [
+		{
+			header: "Engine",
+			question: "Chart engine?",
+			options: [
+				{ label: "Canvas", description: "Render pixels" },
+				{ label: "SVG", description: "Render vectors" },
+			],
+		},
+	],
+};
+const fallbackParams = parseAskToolParams(toolParams).params;
+
 class TestEventBus {
 	readonly events: Array<{ channel: string; data: unknown }> = [];
 	private readonly handlers = new Map<string, Array<(data: unknown) => void>>();
@@ -60,7 +75,7 @@ class TestEventBus {
 	}
 }
 
-function askToolCall(id: string, argumentsValue: unknown = params) {
+function askToolCall(id: string, argumentsValue: unknown = toolParams) {
 	return assistantMessage([
 		{ type: "toolCall", id, name: "ask_user", arguments: argumentsValue },
 	]);
@@ -83,7 +98,7 @@ function toolResult(toolCallId: string) {
 function storedPayload(
 	sourceEntryId: string,
 	storedParams: unknown = params,
-	version = 1
+	version = 2
 ) {
 	return {
 		type: "custom",
@@ -128,9 +143,19 @@ test("pending ask scan uses the latest unresolved call within one assistant mess
 	const pending = findPendingAskToolCall(
 		scannerContext([
 			assistantMessage([
-				{ type: "toolCall", id: "call-1", name: "ask_user", arguments: params },
+				{
+					type: "toolCall",
+					id: "call-1",
+					name: "ask_user",
+					arguments: toolParams,
+				},
 				{ type: "toolCall", id: "other", name: "read", arguments: {} },
-				{ type: "toolCall", id: "call-2", name: "ask_user", arguments: params },
+				{
+					type: "toolCall",
+					id: "call-2",
+					name: "ask_user",
+					arguments: toolParams,
+				},
 			]),
 		])
 	);
@@ -148,7 +173,7 @@ test("pending ask scan ignores tool-shaped content from failed assistant respons
 							type: "toolCall",
 							id: "failed-call",
 							name: "ask_user",
-							arguments: params,
+							arguments: toolParams,
 						},
 					],
 					"error"
@@ -174,7 +199,7 @@ test("pending ask scan prefers its valid persisted payload", () => {
 test("pending ask scan validates recorded arguments as payload fallback", () => {
 	assert.deepEqual(
 		findPendingAskToolCall(scannerContext([askToolCall("call-1")])),
-		{ params, toolCallId: "call-1" }
+		{ params: fallbackParams, toolCallId: "call-1" }
 	);
 	assert.deepEqual(
 		findPendingAskToolCall(
@@ -183,13 +208,13 @@ test("pending ask scan validates recorded arguments as payload fallback", () => 
 				storedPayload("call-2", params, 99),
 			])
 		),
-		{ params, toolCallId: "call-2" }
+		{ params: fallbackParams, toolCallId: "call-2" }
 	);
 	assert.deepEqual(
 		findPendingAskToolCall(
 			scannerContext([askToolCall("call-3"), storedPayload("call-3", {})])
 		),
-		{ params, toolCallId: "call-3" }
+		{ params: fallbackParams, toolCallId: "call-3" }
 	);
 	assert.equal(
 		findPendingAskToolCall(
@@ -203,6 +228,18 @@ test("pending ask scan validates recorded arguments as payload fallback", () => 
 	);
 });
 
+test("pending ask scan ignores a version 1 form and its old arguments", () => {
+	assert.equal(
+		findPendingAskToolCall(
+			scannerContext([
+				askToolCall("old", params),
+				storedPayload("old", params, 1),
+			])
+		),
+		undefined
+	);
+});
+
 test("pending ask scan skips a newer invalid call for an older valid call", () => {
 	const pending = findPendingAskToolCall(
 		scannerContext([
@@ -211,7 +248,10 @@ test("pending ask scan skips a newer invalid call for an older valid call", () =
 		])
 	);
 
-	assert.deepEqual(pending, { params, toolCallId: "valid-call" });
+	assert.deepEqual(pending, {
+		params: fallbackParams,
+		toolCallId: "valid-call",
+	});
 });
 
 test("pending ask scan ignores tool results and persisted dismissals", () => {

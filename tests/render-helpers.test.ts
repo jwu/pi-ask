@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { initTheme } from "@earendil-works/pi-coding-agent";
+import { visibleWidth } from "@earendil-works/pi-tui";
 import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import {
 	renderEditorBlock,
 	renderFooterText,
+	renderPreviewPaneContent,
 } from "../src/ui/render-helpers.ts";
 
 const ABC_PATTERN = /abc/;
@@ -21,6 +24,27 @@ function mockTheme() {
 		},
 	};
 }
+
+test("preview pane renders Markdown tables and keeps the box within its width", () => {
+	initTheme(undefined, false);
+	const theme = { fg: (_color: string, text: string) => text } as never;
+	const lines = renderPreviewPaneContent(
+		{
+			label: "Release plan",
+			preview:
+				"## Staged rollout\n\n| Stage | Traffic |\n| --- | --- |\n| Initial | 5% |",
+		},
+		theme,
+		40
+	);
+
+	assert(lines.some((line) => line.includes("Staged rollout")));
+	assert(lines.some((line) => line.includes("Initial") && line.includes("5%")));
+	assert(lines.every((line) => visibleWidth(line) === 40));
+	assert(
+		lines.every((line) => !(line.includes("##") || line.includes("| --- |")))
+	);
+});
 
 test("renderEditorBlock strips editor borders", () => {
 	const lines: string[] = [];

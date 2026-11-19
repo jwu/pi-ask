@@ -5,7 +5,7 @@
 > Personal fork of [@eko24ive/pi-ask](https://github.com/eko24ive/pi-ask). Releases here follow an independent `fork-v*` version line; the publish flow is documented in [`docs/releasing.md`](docs/releasing.md).
 
 [![npm downloads](https://badgen.net/npm/dm/@johnnywu/pi-ask)](https://www.npmjs.com/package/@johnnywu/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=7a19e54)](https://github.com/jwu/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=fa9b6fc)](https://github.com/jwu/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/jwu/pi-ask)](https://github.com/jwu/pi-ask/stargazers)
 
 > [!IMPORTANT]
@@ -49,12 +49,12 @@ pi -e npm:@johnnywu/pi-ask
 
 Once installed, this package gives the agent a native way to ask for clarification instead of guessing.
 
-- 🧭 Familiar ask-style interface: tabbed questions, single/multi select, and preview mode
+- 🧭 Tabbed single-select and multi-select questions with Markdown option previews
 - ⭐ Optional warning-colored `(recommended)` markers that do not preselect answers
 - ✍️ Inline free-form `Type your own` answers
 - 📎 Native pi-style `@` file references inside answer and note editors
 - 📝 Question-level and option-level notes
-- 👀 Review tab with `Submit`, `Elaborate`, and `Cancel`
+- 👀 Review tab with `Submit`, `进一步说明` (Elaborate), and `Cancel`
 - 💬 Elaboration flow to capture note-based clarification before final submission
 - ⌨️ Context-aware customizable keymaps with aliases for main flow, editors, and settings
 - ⚙️ Ask settings with persisted behaviour, notifications, keymaps, and `/answer` extraction config
@@ -80,10 +80,10 @@ Attach clarification notes to a specific option (`n`) or add broader question-le
 |---|---|
 | ![Option note editor with note text for selected option](docs/media/feature-option-note.png) | ![Question-level note editor with saved note](docs/media/feature-question-note.png) |
 
-### Review tab — Elaborate and Submit
+### Review tab — 进一步说明 (Elaborate) and Submit
 Ask the agent to elaborate on notes before finalizing choices, or review all answers before returning them to the agent.
 
-| Elaborate | Submit |
+| 进一步说明 (Elaborate) | Submit |
 |---|---|
 | ![Review tab with Elaborate action and expanded note preview](docs/media/feature-review-elaborate.png) | ![Review tab with Submit action highlighted](docs/media/feature-review-submit.png) |
 
@@ -126,7 +126,7 @@ Fixed bindings:
 | Key | Context | Effect |
 |---|---|---|
 | `1..9` | Options list | Select or toggle matching option |
-| `1` `2` `3` | Review tab | Trigger `Submit` / `Elaborate` / `Cancel` |
+| `1` `2` `3` | Review tab | Trigger `Submit` / `进一步说明` (Elaborate) / `Cancel` |
 | `@` | Editors | File-reference affordance |
 | Arrow keys / `Tab` | Non-empty editor | Stay in editor for cursor movement |
 
@@ -209,7 +209,7 @@ Accepted notation follows pi-tui key ids. Common aliases are normalized, for exa
 
 After installation, the extension registers the `ask_user` tool plus `/ask-settings`, `/answer`, `/answer:again`, and `/ask:replay` commands.
 
-Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. They can mark any number of grounded preferences with `recommended: true` and use option descriptions for reasons. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately when the config file is writable; save failures revert the toggle and show a manual-edit message. The settings overlay includes a guarded double-press reset-to-defaults action; keymaps, notification channels, and extraction settings are changed by editing the shown config file path.
+Agents can call `ask_user` with 1–4 questions. Each question uses `header`, `question`, and 2–4 options with a `label` and `description`. Set `multiSelect: true` for multiple answers, or add Markdown `preview` to a single-select option to show a preview pane. They can mark any number of grounded preferences with `recommended: true` and use option descriptions for reasons. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately when the config file is writable; save failures revert the toggle and show a manual-edit message. The settings overlay includes a guarded double-press reset-to-defaults action; keymaps, notification channels, and extraction settings are changed by editing the shown config file path.
 
 ### Answer and replay commands
 
@@ -218,7 +218,9 @@ Agents can auto-discover and call `ask_user` when they need clarification instea
 Replay commands are branch-aware. They read persisted entries from the current pi session branch, so they work naturally with `/resume`, `/tree`, and conversation branching:
 
 - `/answer:again` reopens the latest form created by `/answer` on this branch
-- `/ask:replay` reopens the latest real `ask_user` form on this branch
+- `/ask:replay` reopens the latest `ask_user` form on this branch
+
+Forms saved by earlier versions must be asked again using the current input format.
 
 Cancellation is local to the UI: closing a replayed form does not start a new agent turn. Submitted answers are sent back as a normal user follow-up message.
 
@@ -232,9 +234,7 @@ Kudos to [@k0valik](https://github.com/k0valik) for the `/answer` idea.
 
 You can also talk to pi to configure this extension. When asked to customize pi-ask settings, keymaps, notifications, or extraction behavior, the agent is instructed to read the bundled `docs/configuration.md` guide first and then edit the config file accordingly.
 
-This package also bundles the `ask-user` skill profile from `skills/ask-user/SKILL.md`. It reinforces when to use the tool, is enabled by default when installed, and can be disabled via `pi config`. The skill was inspired by https://github.com/edlsh/pi-ask-user.
-
-You can still add your own agent instruction if you want to further reinforce usage.
+The extension registers its usage guidance with `ask_user`. You can add your own agent instructions to tailor when it asks questions.
 
 For exact input/output and UX guarantees, see [`docs/contract.md`](docs/contract.md).
 
@@ -246,14 +246,14 @@ For exact input/output and UX guarantees, see [`docs/contract.md`](docs/contract
 pi -e ./src/index.ts
 ```
 
-### Run in isolated test mode (extension + bundled skill only)
+### Run in isolated test mode
 
 ```bash
 pnpm dev
 pnpm dev ../test
 ```
 
-`pnpm dev [path]` runs pi with `--no-extensions --no-skills --no-prompt-templates --no-themes --no-context-files`, loads this repo’s extension and `skills/ask-user`, and starts pi from `[path]` by changing directories before launch (defaults to `.`).
+`pnpm dev [path]` runs pi with `--no-extensions --no-skills --no-prompt-templates --no-themes --no-context-files`, loads this repo’s extension, and starts pi from `[path]` by changing directories before launch (defaults to `.`).
 
 ### Install dependencies
 

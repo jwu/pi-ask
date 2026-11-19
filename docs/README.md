@@ -9,7 +9,6 @@ This folder keeps only the documentation needed to understand and maintain the e
 - `remote-events.md` — local inter-extension event contract, bridge examples, and smoke-test steps
 - `architecture.md` — module boundaries and invariants
 - `releasing.md` — fork release line, local `semantic-release` flow, and verification steps
-- `../skills/ask-user/SKILL.md` — auto-bundled agent-side decision-gate guidance; enabled by default, but can be disabled via `pi config`; inspired by https://github.com/edlsh/pi-ask-user
 
 ## Reading order
 
