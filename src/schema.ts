@@ -20,8 +20,7 @@ const AskToolOptionSchema = Type.Object(
 		),
 		recommended: Type.Optional(
 			Type.Boolean({
-				description:
-					"Mark a grounded recommendation and explain it in the description",
+				description: "Display a recommendation marker for this option",
 			})
 		),
 	},

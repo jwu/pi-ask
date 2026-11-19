@@ -5,7 +5,7 @@
 > Personal fork of [@eko24ive/pi-ask](https://github.com/eko24ive/pi-ask). Releases here follow an independent `fork-v*` version line; the publish flow is documented in [`docs/releasing.md`](docs/releasing.md).
 
 [![npm downloads](https://badgen.net/npm/dm/@johnnywu/pi-ask)](https://www.npmjs.com/package/@johnnywu/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=fa9b6fc)](https://github.com/jwu/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=12e43be)](https://github.com/jwu/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/jwu/pi-ask)](https://github.com/jwu/pi-ask/stargazers)
 
 > [!IMPORTANT]
@@ -82,7 +82,7 @@ Attach clarification notes to a specific option (`n`) or add broader question-le
 
 ### Review tab
 
-Review your answers before choosing `Submit` or `Cancel`.
+Review your answers before choosing `Submit` or `Cancel`. Cancelling a form opened by the agent closes it and ends the current run. Send a new message when you’re ready to continue.
 
 ### Single-select and multi-select questions
 Pick one option when answers are mutually exclusive, or choose multiple options when several answers apply.

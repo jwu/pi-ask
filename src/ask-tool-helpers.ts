@@ -16,7 +16,6 @@ export const ASK_TOOL_DESCRIPTION = `Ask the user one or more structured questio
 Usage notes:
 - Each question offers 2-4 distinct choices. Users can type a custom answer via the automatically appended "Type your own" row or press Esc to abandon the questionnaire. Do not author a custom-answer option yourself.
 - Use multiSelect: true when multiple answers are valid. Custom text can accompany selected choices in a multi-select answer.
-- If you recommend a specific option, put it first, set recommended: true, and explain the reason in its description.
 
 Preview feature:
 Use the optional preview field on options when presenting concrete artifacts that users need to visually compare:
@@ -30,7 +29,8 @@ Preview content renders as Markdown. If any option on a single-select question h
 export const ASK_TOOL_PROMPT_GUIDELINES = [
 	"Use ask_user whenever the user's request is underspecified and you cannot proceed without concrete decisions. You can ask up to 4 questions per invocation.",
 	"Each question must have 2-4 options. Give each one a concise label and a description explaining its meaning or trade-offs. The tool automatically offers a custom answer.",
-	"Set multiSelect: true when multiple answers are valid. For single-select questions, use an option's preview for concrete Markdown examples. Mark a grounded recommendation with recommended: true and explain it in the description.",
+	"Set multiSelect: true when multiple answers are valid. For single-select questions, use an option's preview for concrete Markdown examples.",
+	"Before calling `ask_user`, check each question for options you can recommend based on the user's goals, preferences, constraints, or available evidence. For every such option, explicitly set `recommended: true` and state the reason in its `description`. Leave the field unset when there is no grounded recommendation.",
 	"Group independent clarifying questions into one invocation. Ask sequentially when a later question depends on the previous answer.",
 	"When a result requests elaboration, address the user's notes first. Re-ask only the affected questions if a choice is still needed.",
 ] as const;

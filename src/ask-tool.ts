@@ -72,6 +72,9 @@ async function executeAskTool(
 				? { runtime: remoteAsk, source: "tool", toolCallId }
 				: undefined,
 		});
+		if (result.cancelled) {
+			ctx.abort();
+		}
 		return successfulResponse(result);
 	} finally {
 		ctx.ui.setWorkingVisible(true);

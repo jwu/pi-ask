@@ -4,6 +4,8 @@ import { Value } from "typebox/value";
 import { ASK_PAYLOAD_ENTRY_VERSION } from "../src/ask-payload-store.ts";
 import { registerAskTool } from "../src/ask-tool.ts";
 import { parseAskToolParams } from "../src/ask-tool-params.ts";
+import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
+import { getAskConfigStore } from "../src/config/store.ts";
 import type { AskToolParams, AskToolParamsSchema } from "../src/schema.ts";
 
 const NON_INTERACTIVE_MESSAGE_RE =
@@ -37,6 +39,7 @@ function registerMockTool() {
 	return {
 		entries,
 		tool: tools[0] as {
+			description: string;
 			execute: (...args: any[]) => Promise<any>;
 			parameters: typeof AskToolParamsSchema;
 			promptGuidelines: string[];
@@ -53,9 +56,10 @@ function registerMockTool() {
 test("ask tool declares compact arguments and structured recommendations", () => {
 	const { tool } = registerMockTool();
 	assert(Value.Check(tool.parameters, params));
+	assert(!tool.description.toLowerCase().includes("recommend"));
 	assert(
-		tool.promptGuidelines.some((guideline) =>
-			guideline.includes("recommended: true")
+		tool.promptGuidelines.includes(
+			"Before calling `ask_user`, check each question for options you can recommend based on the user's goals, preferences, constraints, or available evidence. For every such option, explicitly set `recommended: true` and state the reason in its `description`. Leave the field unset when there is no grounded recommendation."
 		)
 	);
 	const [question] = params.questions;
@@ -130,6 +134,55 @@ test("ask tool does not open custom UI outside TUI mode", async () => {
 	});
 	assert.equal(result.details.cancelled, true);
 	assert.match(result.content[0].text, NON_INTERACTIVE_MESSAGE_RE);
+});
+
+test("Esc cancels the ask tool and aborts the active agent run", async (t) => {
+	const configStore = getAskConfigStore();
+	configStore.setConfig({
+		...DEFAULT_ASK_CONFIG,
+		notifications: { ...DEFAULT_ASK_CONFIG.notifications, enabled: false },
+	});
+	t.after(() => configStore.setConfig(DEFAULT_ASK_CONFIG));
+
+	const { tool } = registerMockTool();
+	const abort = t.mock.fn();
+	const setWorkingVisible = t.mock.fn();
+	const result = await tool.execute("call-1", params, undefined, undefined, {
+		abort,
+		cwd: process.cwd(),
+		mode: "tui",
+		ui: {
+			custom(
+				create: (...args: unknown[]) => {
+					dispose(): void;
+					handleInput(data: string): void;
+				}
+			) {
+				return new Promise((resolve) => {
+					const component = create(
+						{ requestRender: t.mock.fn() },
+						{},
+						{},
+						resolve
+					);
+					try {
+						component.handleInput("\x1b");
+						assert.equal(abort.mock.callCount(), 0);
+					} finally {
+						component.dispose();
+					}
+				});
+			},
+			setWorkingVisible,
+		},
+	});
+
+	assert.equal(result.details.cancelled, true);
+	assert.equal(abort.mock.callCount(), 1);
+	assert.deepEqual(
+		setWorkingVisible.mock.calls.map((call) => call.arguments),
+		[[false], [true]]
+	);
 });
 
 test("one preview enables single-select preview mode and multi-select takes precedence", () => {
