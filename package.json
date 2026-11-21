@@ -1,6 +1,6 @@
 {
   "name": "@johnnywu/pi-ask",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Pi package that adds an interactive ask_user clarification tool.",
   "license": "MIT",
   "type": "module",

@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/jwu/pi-ask/compare/fork-v1.0.2...fork-v1.0.3) (2026-11-21)
+
+
+### Bug Fixes
+
+* **deps:** 对齐 pi 1.6.0 依赖范围 ([61abb62](https://github.com/jwu/pi-ask/commit/61abb629e50429cb9a25e55b14f170ed66f04473))
+
 ## [1.0.2](https://github.com/jwu/pi-ask/compare/fork-v1.0.1...fork-v1.0.2) (2026-11-19)
 
 
