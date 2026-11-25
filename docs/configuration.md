@@ -12,13 +12,14 @@ pi-ask treats this file as user-owned config. It does not rewrite or back up the
 
 ## Config file path
 
-Default path:
+pi-ask reads the first existing file in this order.
 
-`~/.pi/agent/extensions/eko24ive-pi-ask.json`
+1. `~/.pi/agent/extensions/pi-ask.json`
+2. `~/.pi/agent/eko24ive-pi-ask.json`
 
-If the file does not exist yet, pi-ask attempts to create it with the current default settings the first time the ask flow is used. If the config location is read-only or managed outside pi-ask, pi-ask uses built-in defaults for the session and leaves disk unchanged.
+`/ask-settings` shows the first path and saves changes there. Loading the legacy root file leaves it in place. To carry over settings from `~/.pi/agent/extensions/eko24ive-pi-ask.json`, copy its contents to `~/.pi/agent/extensions/pi-ask.json` and run `/reload`.
 
-Older pi-ask versions wrote this file at `~/.pi/agent/eko24ive-pi-ask.json`. If that legacy file exists and the extensions config does not, pi-ask reads the legacy file as a fallback and leaves disk unchanged. If both files exist, pi-ask uses the extensions config and leaves the legacy root file untouched.
+If both supported files are missing, pi-ask attempts to create `~/.pi/agent/extensions/pi-ask.json` with the default settings the first time the ask flow is used. If the config location is read-only or managed outside pi-ask, pi-ask uses built-in defaults for the session and leaves disk unchanged.
 
 ## Config versions and migrations
 

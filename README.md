@@ -5,7 +5,7 @@
 > Personal fork of [@eko24ive/pi-ask](https://github.com/eko24ive/pi-ask). Releases here follow an independent `fork-v*` version line; the publish flow is documented in [`docs/releasing.md`](docs/releasing.md).
 
 [![npm downloads](https://badgen.net/npm/dm/@johnnywu/pi-ask)](https://www.npmjs.com/package/@johnnywu/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=12e43be)](https://github.com/jwu/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/jwu/pi-ask?v=85b02df)](https://github.com/jwu/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/jwu/pi-ask)](https://github.com/jwu/pi-ask/stargazers)
 
 > [!IMPORTANT]
@@ -105,7 +105,7 @@ Capture free-form input inline without leaving the flow.
 
 Open ask settings with `?` during the ask flow, or with the `/ask-settings` command from pi.
 
-Keymaps are context-aware and configurable in `~/.pi/agent/extensions/eko24ive-pi-ask.json`.
+Keymaps are context-aware and configurable in `~/.pi/agent/extensions/pi-ask.json`.
 Each action accepts a key string or an array of aliases.
 
 Default contexts:

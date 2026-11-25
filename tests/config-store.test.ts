@@ -32,14 +32,14 @@ async function makeTempPath(name: string): Promise<string> {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), name))
 	);
-	return join(root, "eko24ive-pi-ask.json");
+	return join(root, "pi-ask.json");
 }
 
 test("resetAskConfigStore reloads the global store from disk", async () => {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), "pi-ask-config-reset-"))
 	);
-	const path = join(root, "extensions", "eko24ive-pi-ask.json");
+	const path = join(root, "extensions", "pi-ask.json");
 	await mkdir(dirname(path), { recursive: true });
 	await writeFile(
 		path,
@@ -218,7 +218,7 @@ test("config store reads legacy root config without copying it", async () => {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), "pi-ask-config-legacy-"))
 	);
-	const path = join(root, "extensions", "eko24ive-pi-ask.json");
+	const path = join(root, "extensions", "pi-ask.json");
 	const legacyPath = join(root, "eko24ive-pi-ask.json");
 	await writeFile(
 		legacyPath,
@@ -249,50 +249,55 @@ test("config store reads legacy root config without copying it", async () => {
 	await rm(root, { force: true, recursive: true });
 });
 
-test("config store leaves legacy root config when extensions config exists", async () => {
+test("config store prefers the current path and skips the old extensions path", async (t) => {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), "pi-ask-config-conflict-"))
 	);
-	const path = join(root, "extensions", "eko24ive-pi-ask.json");
-	const legacyPath = join(root, "eko24ive-pi-ask.json");
-	await mkdir(dirname(path), { recursive: true });
-	await writeFile(
-		path,
-		JSON.stringify({
-			schemaVersion: 1,
-			behaviour: {
-				autoSubmitWhenAnsweredWithoutNotes: false,
-				confirmDismissWhenDirty: true,
-				doublePressReviewShortcuts: true,
-				showFooterHints: true,
-			},
-			keymaps: DEFAULT_ASK_CONFIG.keymaps,
+	const originalAgentDir = process.env.PI_CODING_AGENT_DIR;
+	process.env.PI_CODING_AGENT_DIR = root;
+	t.after(async () => {
+		if (originalAgentDir === undefined) {
+			delete process.env.PI_CODING_AGENT_DIR;
+		} else {
+			process.env.PI_CODING_AGENT_DIR = originalAgentDir;
+		}
+		await rm(root, { force: true, recursive: true });
+	});
+
+	const currentPath = join(root, "extensions", "pi-ask.json");
+	const legacyExtensionsPath = join(root, "extensions", "eko24ive-pi-ask.json");
+	const legacyRootPath = join(root, "eko24ive-pi-ask.json");
+	const rootConfig = JSON.stringify(
+		expectedConfigFile({
+			behaviour: { ...DEFAULT_ASK_CONFIG.behaviour, showFooterHints: false },
 		})
 	);
-	await writeFile(
-		legacyPath,
-		JSON.stringify({
-			schemaVersion: 1,
+	const extensionsConfig = JSON.stringify(
+		expectedConfigFile({
 			behaviour: {
+				...DEFAULT_ASK_CONFIG.behaviour,
 				autoSubmitWhenAnsweredWithoutNotes: true,
-				confirmDismissWhenDirty: true,
-				doublePressReviewShortcuts: true,
-				showFooterHints: false,
 			},
-			keymaps: DEFAULT_ASK_CONFIG.keymaps,
 		})
 	);
-	const store = new AskConfigStore(path, [legacyPath]);
+	await mkdir(dirname(currentPath), { recursive: true });
+	await writeFile(legacyExtensionsPath, extensionsConfig);
+	assert.deepEqual(await new AskConfigStore().getConfig(), DEFAULT_ASK_CONFIG);
+	assert.deepEqual(
+		JSON.parse(await readFile(currentPath, "utf-8")),
+		expectedConfigFile()
+	);
+	await writeFile(legacyRootPath, rootConfig);
+	assert.deepEqual(await new AskConfigStore().getConfig(), DEFAULT_ASK_CONFIG);
 
-	const result = await store.ensureLoaded();
-
+	await rm(currentPath);
 	assert.equal(
-		result.config.behaviour.autoSubmitWhenAnsweredWithoutNotes,
+		(await new AskConfigStore().getConfig()).behaviour.showFooterHints,
 		false
 	);
-	assert.equal(result.config.behaviour.showFooterHints, true);
-	assert.ok(await readFile(legacyPath, "utf-8"));
-	await rm(root, { force: true, recursive: true });
+	await assert.rejects(readFile(currentPath, "utf-8"), { code: "ENOENT" });
+	assert.equal(await readFile(legacyExtensionsPath, "utf-8"), extensionsConfig);
+	assert.equal(await readFile(legacyRootPath, "utf-8"), rootConfig);
 });
 
 test("config store falls back only keymaps when configured keymaps are invalid", async () => {

@@ -176,7 +176,7 @@ export function resetAskConfigStore(): void {
 }
 
 export function getAskConfigPath(): string {
-	return join(getAgentDir(), "extensions", "eko24ive-pi-ask.json");
+	return join(getAgentDir(), "extensions", "pi-ask.json");
 }
 
 export function getLegacyAskConfigPaths(): string[] {
