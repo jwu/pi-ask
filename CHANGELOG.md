@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/jwu/pi-ask/compare/fork-v1.0.3...fork-v1.0.4) (2026-11-25)
+
+
+### Bug Fixes
+
+* **config:** use pi-ask.json as the default config file ([5a63eb8](https://github.com/jwu/pi-ask/commit/5a63eb8d5c56347884690cecbf0987817e4b2e56))
+
 ## [1.0.3](https://github.com/jwu/pi-ask/compare/fork-v1.0.2...fork-v1.0.3) (2026-11-21)
 
 
